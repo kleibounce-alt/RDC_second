@@ -6,7 +6,6 @@ CREATE TABLE `sys_user` (
                             `avatar` VARCHAR(255) DEFAULT NULL,
                             `email` VARCHAR(100) DEFAULT NULL,
                             `phone` VARCHAR(20) DEFAULT NULL,
-                            `role` ENUM('USER','ADMIN') DEFAULT 'USER',
                             `vip_level` INT DEFAULT '0',
                             `vip_expire_time` DATETIME DEFAULT NULL,
                             `ban_end_time` DATETIME DEFAULT NULL,
@@ -223,11 +222,11 @@ CREATE TABLE `vip_order` (
                              PRIMARY KEY (`id`)
 );
 
-CREATE TABLE `sensitive_word` (
-                                  `id` BIGINT NOT NULL AUTO_INCREMENT,
-                                  `word` VARCHAR(50) NOT NULL,
-                                  `is_deleted` TINYINT(1) DEFAULT '0',
-                                  `created_at` DATETIME,
-                                  PRIMARY KEY (`id`),
-                                  UNIQUE (`word`)
+CREATE TABLE `sensitive_word`(
+                            `id` BIGINT NOT NULL AUTO_INCREMENT,
+                            `word` VARCHAR(50) NOT NULL,
+                            `is_deleted` TINYINT(1) DEFAULT '0',
+                            `created_at` DATETIME,
+                            PRIMARY KEY (`id`),
+                            UNIQUE (`word`)
 );
