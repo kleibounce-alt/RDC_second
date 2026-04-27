@@ -1,0 +1,22 @@
+package com.klei.xianyuMarket.listener;
+
+import com.klei.xianyuMarket.pool.ConnectionPool;
+
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
+import javax.servlet.annotation.WebListener;
+
+@WebListener
+public class AppContextListener implements ServletContextListener {
+
+    @Override
+    public void contextInitialized(ServletContextEvent sce) {
+        System.out.println("应用启动，连接池已初始化");
+    }
+
+    @Override
+    public void contextDestroyed(ServletContextEvent sce) {
+        ConnectionPool.destroy();
+        System.out.println("应用关闭，连接池已销毁");
+    }
+}
