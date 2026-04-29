@@ -70,6 +70,18 @@
                 <version>1.5</version>
             </dependency>
             <dependency>
+                <groupId>com.sun.mail</groupId>
+                <artifactId>javax.mail</artifactId>
+                <version>1.6.2</version>
+            </dependency>
+
+            <dependency>
+                <groupId>javax.websocket</groupId>
+                <artifactId>javax.websocket-api</artifactId>
+                <version>1.1</version>
+                <scope>provided</scope>
+            </dependency>
+            <dependency>
                 <groupId>org.projectlombok</groupId>
                 <artifactId>lombok</artifactId>
                 <version>1.18.30</version>
@@ -620,7 +632,7 @@ CREATE TABLE `sensitive_word`(
       <workItem from="1777272374262" duration="14549000" />
       <workItem from="1777388439311" duration="5144000" />
       <workItem from="1777432454138" duration="3077000" />
-      <workItem from="1777451305010" duration="5731000" />
+      <workItem from="1777451305010" duration="7949000" />
     </task>
     <servers />
   </component>
@@ -761,6 +773,15 @@ CREATE TABLE `sensitive_word`(
         <dependency>
             <groupId>commons-fileupload</groupId>
             <artifactId>commons-fileupload</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.sun.mail</groupId>
+            <artifactId>javax.mail</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>javax.websocket</groupId>
+            <artifactId>javax.websocket-api</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>

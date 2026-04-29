@@ -26,7 +26,10 @@ public class AuthFilter implements Filter {
     // urlPattern -> permissionCode，启动时从数据库加载
     private final Map<String, String> urlPermissionMap = new LinkedHashMap<>();
     // 白名单路径，无需登录即可访问
-    private final List<String> whitelist = Arrays.asList("/login", "/register", "/captcha", "/upload");
+    private final List<String> whitelist = Arrays.asList(
+            "/login", "/register", "/captcha", "/upload",
+            "/forgot-password", "/reset-password", "/refresh-token"
+    );
 
     @Override
     public void init(FilterConfig filterConfig) {
@@ -35,9 +38,11 @@ public class AuthFilter implements Filter {
 
     private void loadPermissions() {
         String sql = "SELECT url_pattern, code FROM sys_permission WHERE is_deleted = 0 AND url_pattern IS NOT NULL";
-        try (Connection conn = ConnectionPool.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        Connection conn = null;
+        try {
+            conn = ConnectionPool.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 String pattern = rs.getString("url_pattern");
                 String code = rs.getString("code");
@@ -45,9 +50,15 @@ public class AuthFilter implements Filter {
                     urlPermissionMap.put(pattern, code);
                 }
             }
+            rs.close();
+            ps.close();
             LogUtil.info("AuthFilter 加载权限规则: " + urlPermissionMap.size() + " 条");
         } catch (SQLException e) {
             LogUtil.error("AuthFilter 加载权限配置失败", e);
+        } finally {
+            if (conn != null) {
+                try { conn.close(); } catch (SQLException ignored) {}
+            }
         }
     }
 
@@ -59,7 +70,6 @@ public class AuthFilter implements Filter {
         HttpServletResponse response = (HttpServletResponse) resp;
         String uri = request.getRequestURI();
         String contextPath = request.getContextPath();
-        // 去掉 contextPath，得到真实路径
         String path = uri.substring(contextPath.length());
 
         // 1. 白名单直接放行
@@ -90,8 +100,8 @@ public class AuthFilter implements Filter {
                 ? new ArrayList<>()
                 : Arrays.asList(permsStr.split(","));
 
-        // 4. 查 Redis 黑名单（RefreshToken 被注销）
-        String blacklistKey = "blacklist:refresh:" + userId;
+        // 4. 查 Redis 黑名单（该用户 AccessToken 被注销）
+        String blacklistKey = "blacklist:access:" + userId;
         if (RedisUtil.exists(blacklistKey)) {
             writeJson(response, 401, Result.unauthorized());
             return;
@@ -104,9 +114,13 @@ public class AuthFilter implements Filter {
             return;
         }
 
-        // 6. 把 userId 和权限列表挂到 request，后续 Servlet/Service 可直接取
+        // 6. 把 userId、权限、角色列表挂到 request，后续 Servlet/Service 直接取
         request.setAttribute("userId", userId);
         request.setAttribute("permissions", userPerms);
+        String rolesStr = jwt.getClaim("roles").asString();
+        request.setAttribute("roles", (rolesStr == null || rolesStr.isEmpty())
+                ? new ArrayList<>()
+                : Arrays.asList(rolesStr.split(",")));
 
         chain.doFilter(req, resp);
     }
@@ -123,7 +137,8 @@ public class AuthFilter implements Filter {
     private String matchPermission(String path) {
         for (Map.Entry<String, String> entry : urlPermissionMap.entrySet()) {
             String pattern = entry.getKey();
-            if (pattern.endsWith("*")) {
+            if (pattern.endsWith("/*")) {
+                // 修正：/admin/* 匹配 /admin/xxx，不匹配 /admin123
                 String prefix = pattern.substring(0, pattern.length() - 1);
                 if (path.startsWith(prefix)) {
                     return entry.getValue();

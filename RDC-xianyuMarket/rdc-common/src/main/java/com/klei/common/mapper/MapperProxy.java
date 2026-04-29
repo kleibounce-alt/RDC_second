@@ -34,8 +34,11 @@ public class MapperProxy implements InvocationHandler {
             throw new RuntimeException("Mapper 方法缺少 SQL 注解: " + method.getName());
         }
 
-        try (Connection conn = ConnectionPool.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql, isSelect ? Statement.NO_GENERATED_KEYS : Statement.RETURN_GENERATED_KEYS)) {
+        Connection conn = null;
+        PreparedStatement ps = null;
+        try {
+            conn = ConnectionPool.getConnection();
+            ps = conn.prepareStatement(sql, isSelect ? Statement.NO_GENERATED_KEYS : Statement.RETURN_GENERATED_KEYS);
 
             if (args != null) {
                 for (int i = 0; i < args.length; i++) {
@@ -48,10 +51,16 @@ public class MapperProxy implements InvocationHandler {
                 return handleQuery(rs, method);
             } else {
                 int rows = ps.executeUpdate();
-                if (method.isAnnotationPresent(Insert.class) && method.getReturnType() == Long.class) {
-                    ResultSet keys = ps.getGeneratedKeys();
-                    if (keys.next()) {
-                        return keys.getLong(1);
+                // 修复：支持 Long 包装类和 long 基本类型返回主键
+                if (method.isAnnotationPresent(Insert.class)) {
+                    Class<?> returnType = method.getReturnType();
+                    if (returnType == Long.class || returnType == long.class) {
+                        ResultSet keys = ps.getGeneratedKeys();
+                        if (keys.next()) {
+                            long key = keys.getLong(1);
+                            keys.close();
+                            return returnType == long.class ? key : Long.valueOf(key);
+                        }
                     }
                 }
                 return rows;
@@ -59,6 +68,11 @@ public class MapperProxy implements InvocationHandler {
         } catch (SQLException e) {
             LogUtil.error("Mapper 执行失败 [" + sql + "]", e);
             throw new RuntimeException("数据库操作失败: " + e.getMessage(), e);
+        } finally {
+            // 确保连接归还
+            if (conn != null) {
+                try { conn.close(); } catch (SQLException ignored) {}
+            }
         }
     }
 
@@ -78,19 +92,24 @@ public class MapperProxy implements InvocationHandler {
             while (rs.next()) {
                 list.add(ResultSetMapper.mapRow(rs, elementType));
             }
+            rs.close();
             return list;
         }
 
         if (returnType.isPrimitive() || ResultSetMapper.isWrapperType(returnType) || returnType == String.class) {
+            Object result = null;
             if (rs.next()) {
-                return rs.getObject(1);
+                result = rs.getObject(1);
             }
-            return null;
+            rs.close();
+            return result;
         }
 
+        Object result = null;
         if (rs.next()) {
-            return ResultSetMapper.mapRow(rs, returnType);
+            result = ResultSetMapper.mapRow(rs, returnType);
         }
-        return null;
+        rs.close();
+        return result;
     }
 }

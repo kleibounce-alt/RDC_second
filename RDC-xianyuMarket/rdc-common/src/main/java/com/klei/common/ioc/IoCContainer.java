@@ -2,6 +2,7 @@ package com.klei.common.ioc;
 
 import com.klei.common.annotation.Autowired;
 import com.klei.common.annotation.Component;
+import com.klei.common.mapper.MapperProxyFactory;
 import com.klei.common.utils.LogUtil;
 
 import java.io.File;
@@ -37,7 +38,7 @@ public class IoCContainer {
             scanDirectory(dir, basePackage);
             doInjection();
 
-            LogUtil.info("IoC容器初始化完成，共注册 " + beanMap.size() + " 个Bean");
+            LogUtil.info("IoC容器初始化完成，共注册" + beanMap.size() + " 个Bean");
         } catch (Exception e) {
             LogUtil.error("IoC容器启动失败", e);
             throw new RuntimeException("IoC容器启动失败", e);
@@ -91,6 +92,18 @@ public class IoCContainer {
                 Class<?> fieldType = field.getType();
 
                 Object dependency = beanMap.get(fieldType);
+
+                if (dependency == null && fieldType.isInterface()) {
+                    try {
+                        dependency = MapperProxyFactory.getMapper(fieldType);
+                        beanMap.put(fieldType, dependency);
+                        LogUtil.info("IoC自动注册Mapper: " + fieldType.getName());
+                    } catch (Exception e) {
+                        LogUtil.warn("IoC注入跳过，无法创建Mapper代理: " + fieldType.getName());
+                        continue;
+                    }
+                }
+
                 if (dependency == null) {
                     LogUtil.warn("IoC注入跳过，未找到Bean: " + fieldType.getName() + " -> " + clazz.getName() + "." + field.getName());
                     continue;

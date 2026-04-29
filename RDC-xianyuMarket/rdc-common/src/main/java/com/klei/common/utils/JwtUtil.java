@@ -21,12 +21,13 @@ public class JwtUtil {
     // RefreshToken: 7天
     private static final long REFRESH_EXPIRE = 7 * 24 * 60 * 60 * 1000;
 
-    public static String createAccessToken(Long userId, List<String> permissions) {
+    public static String createAccessToken(Long userId, List<String> permissions, List<String> roles) {
         Date now = new Date();
         Date expire = new Date(now.getTime() + ACCESS_EXPIRE);
         return JWT.create()
                 .withClaim("userId", userId)
                 .withClaim("perms", String.join(",", permissions))
+                .withClaim("roles", String.join(",", roles))
                 .withIssuedAt(now)
                 .withExpiresAt(expire)
                 .sign(ALGORITHM);
@@ -60,6 +61,14 @@ public class JwtUtil {
             return List.of();
         }
         return Arrays.asList(perms.split(","));
+    }
+
+    public static List<String> getRoles(String token) {
+        String roles = verify(token).getClaim("roles").asString();
+        if (roles == null || roles.isEmpty()) {
+            return List.of();
+        }
+        return Arrays.asList(roles.split(","));
     }
 
     public static String extractToken(HttpServletRequest request) {

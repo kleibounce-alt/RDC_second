@@ -61,29 +61,60 @@ public class ResultSetMapper {
         if (targetType.isAssignableFrom(value.getClass())) {
             return value;
         }
-        if (targetType == Long.class || targetType == long.class) {
-            if (value instanceof Number) {
-                return ((Number) value).longValue();
+
+        // Number 统一处理（Integer, Long, BigDecimal, Float, Double 等）
+        if (value instanceof Number) {
+            Number num = (Number) value;
+            if (targetType == Long.class || targetType == long.class) {
+                return num.longValue();
+            }
+            if (targetType == Integer.class || targetType == int.class) {
+                return num.intValue();
+            }
+            if (targetType == Double.class || targetType == double.class) {
+                return num.doubleValue();
+            }
+            if (targetType == Float.class || targetType == float.class) {
+                return num.floatValue();
+            }
+            if (targetType == Short.class || targetType == short.class) {
+                return num.shortValue();
+            }
+            if (targetType == Byte.class || targetType == byte.class) {
+                return num.byteValue();
+            }
+            if (targetType == Boolean.class || targetType == boolean.class) {
+                return num.intValue() != 0;
             }
         }
-        if (targetType == Integer.class || targetType == int.class) {
-            if (value instanceof Number) {
-                return ((Number) value).intValue();
-            }
-        }
-        if (targetType == Double.class || targetType == double.class) {
-            if (value instanceof Number) {
-                return ((Number) value).doubleValue();
-            }
-        }
+
         if (targetType == String.class) {
             return value.toString();
         }
+
         if (targetType == LocalDateTime.class) {
             if (value instanceof Timestamp) {
                 return ((Timestamp) value).toLocalDateTime();
             }
+            if (value instanceof java.sql.Date) {
+                return ((java.sql.Date) value).toLocalDate().atStartOfDay();
+            }
         }
+
+        // 枚举类型映射（数据库 ENUM/字符串 -> Java Enum）
+        if (targetType.isEnum()) {
+            if (value instanceof String) {
+                String enumStr = ((String) value).trim();
+                try {
+                    @SuppressWarnings({"unchecked", "rawtypes"})
+                    Object enumValue = Enum.valueOf((Class<Enum>) targetType, enumStr);
+                    return enumValue;
+                } catch (IllegalArgumentException e) {
+                    throw new RuntimeException("枚举映射失败: " + targetType.getSimpleName() + " 不存在值 '" + enumStr + "'", e);
+                }
+            }
+        }
+
         return value;
     }
 
