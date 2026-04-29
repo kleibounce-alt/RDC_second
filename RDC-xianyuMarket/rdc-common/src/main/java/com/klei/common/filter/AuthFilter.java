@@ -120,9 +120,6 @@ public class AuthFilter implements Filter {
         return false;
     }
 
-    /**
-     * 匹配路径所需权限。支持 * 结尾的前缀匹配，否则精确匹配。
-     */
     private String matchPermission(String path) {
         for (Map.Entry<String, String> entry : urlPermissionMap.entrySet()) {
             String pattern = entry.getKey();
