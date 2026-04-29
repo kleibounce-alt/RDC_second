@@ -1,6 +1,6 @@
 package com.klei.common.pool;
 
-import com.klei.xianyuMarket.rdc_common.config.DataSourceConfig;
+import com.klei.common.config.DataSourceConfig;
 
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -11,11 +11,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class ConnectionPool {
 
-    // 最小空闲连接数
     private static final int MIN_IDLE = 5;
-    // 最大活跃连接数
     private static final int MAX_ACTIVE = 20;
-    // 等待超时 5 秒
     private static final long WAIT_TIMEOUT = 5000;
 
     private static final LinkedBlockingQueue<Connection> idleQueue = new LinkedBlockingQueue<>();
@@ -57,13 +54,11 @@ public class ConnectionPool {
 
     public static Connection getConnection() throws SQLException {
         synchronized (lock) {
-            // 1. 优先从空闲队列拿
             Connection realConn = idleQueue.poll();
             if (realConn != null) {
                 return wrap(realConn);
             }
 
-            // 2. 空闲没了，看能不能新建（还没达到上限）
             if (activeCount < MAX_ACTIVE) {
                 createAndAddConnection();
                 realConn = idleQueue.poll();
@@ -72,7 +67,6 @@ public class ConnectionPool {
                 }
             }
 
-            // 3. 达到上限，进入等待
             long deadline = System.currentTimeMillis() + WAIT_TIMEOUT;
             while (true) {
                 realConn = idleQueue.poll();

@@ -2,7 +2,7 @@ package com.klei.common.ioc;
 
 import com.klei.common.annotation.Autowired;
 import com.klei.common.annotation.Component;
-import com.klei.xianyuMarket.rdc_common.utils.LogUtil;
+import com.klei.common.utils.LogUtil;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -16,9 +16,6 @@ public class IoCContainer {
 
     private static final Map<Class<?>, Object> beanMap = new ConcurrentHashMap<>();
 
-    /**
-     * 扫描包路径，实例化所有@Component类，并完成字段注入
-     */
     public static void scan(String basePackage) {
         String packagePath = basePackage.replace('.', '/');
         ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
@@ -37,10 +34,7 @@ public class IoCContainer {
                 return;
             }
 
-            // 阶段1：扫描并实例化所有@Component
             scanDirectory(dir, basePackage);
-
-            // 阶段2：统一注入@Autowired字段
             doInjection();
 
             LogUtil.info("IoC容器初始化完成，共注册 " + beanMap.size() + " 个Bean");
@@ -58,7 +52,6 @@ public class IoCContainer {
 
         for (File file : files) {
             if (file.isDirectory()) {
-                //递归扫描
                 scanDirectory(file, packageName + "." + file.getName());
             } else if (file.getName().endsWith(".class")) {
                 String className = packageName + "." + file.getName().replace(".class", "");

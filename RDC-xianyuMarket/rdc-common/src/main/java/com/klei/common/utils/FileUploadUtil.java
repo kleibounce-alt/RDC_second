@@ -1,6 +1,6 @@
 package com.klei.common.utils;
 
-import com.klei.xianyuMarket.rdc_common.exception.BusinessException;
+import com.klei.common.exception.BusinessException;
 import org.apache.commons.fileupload.FileItem;
 import org.apache.commons.fileupload.disk.DiskFileItemFactory;
 import org.apache.commons.fileupload.servlet.ServletFileUpload;
@@ -14,20 +14,17 @@ import java.util.UUID;
 public class FileUploadUtil {
 
     private static final String UPLOAD_BASE = "upload";
-    // 5MB
     private static final long MAX_SIZE = 5 * 1024 * 1024;
     private static final String[] ALLOW_TYPES = {".jpg", ".jpeg", ".png", ".gif", ".webp"};
 
-    //上传单张
     public static String uploadSingleImage(HttpServletRequest request, String subDir) throws Exception {
         List<String> paths = uploadImages(request, subDir, 1);
         return paths.isEmpty() ? null : paths.get(0);
     }
 
-
     public static List<String> uploadImages(HttpServletRequest request, String subDir, int maxCount) throws Exception {
         if (!ServletFileUpload.isMultipartContent(request)) {
-            throw new com.klei.common.exception.BusinessException("请求不是multipart类型，无法上传文件");
+            throw new BusinessException("请求不是multipart类型，无法上传文件");
         }
 
         DiskFileItemFactory factory = new DiskFileItemFactory();
@@ -53,7 +50,6 @@ public class FileUploadUtil {
             String newName = UUID.randomUUID().toString().replace("-", "") + ext;
             String relativePath = UPLOAD_BASE + "/" + subDir + "/" + newName;
 
-            // 获取 Tomcat 真实部署路径
             String realPath = request.getServletContext().getRealPath("/") + relativePath;
             File dest = new File(realPath);
             if (!dest.getParentFile().exists()) {

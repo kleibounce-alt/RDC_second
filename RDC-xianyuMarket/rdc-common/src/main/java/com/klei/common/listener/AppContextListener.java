@@ -1,7 +1,7 @@
 package com.klei.common.listener;
 
-import com.klei.xianyuMarket.rdc_common.ioc.IoCContainer;
-import com.klei.xianyuMarket.rdc_common.pool.ConnectionPool;
+import com.klei.common.ioc.IoCContainer;
+import com.klei.common.pool.ConnectionPool;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -12,7 +12,7 @@ public class AppContextListener implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        IoCContainer.scan("com.klei.xianyuMarket");
+        IoCContainer.scan("com.klei");
         System.out.println("应用启动，连接池已初始化，IoC已扫描");
     }
 
