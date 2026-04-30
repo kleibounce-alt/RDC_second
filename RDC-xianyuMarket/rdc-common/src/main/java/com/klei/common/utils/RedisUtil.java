@@ -46,7 +46,7 @@ public class RedisUtil {
             return jedis.setnx(key, value) == 1;
         }
     }
-    
+
 
     // 带过期时间的 setnx（原子操作）
     public static boolean setnxex(String key, String value, int seconds) {

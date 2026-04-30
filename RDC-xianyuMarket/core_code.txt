@@ -485,26 +485,26 @@ CREATE TABLE `sensitive_word`(
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "RunOnceActivity.typescript.service.memoryLimit.init": "true",
-    "SHARE_PROJECT_CONFIGURATION_FILES": "true",
-    "Tomcat 鏈嶅姟鍣?Tomcat 9.0.116.executor": "Run",
-    "git-widget-placeholder": "dev",
-    "kotlin-language-version-configured": "true",
-    "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "妯″潡",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.2",
-    "vue.rearranger.settings.migration": "true",
-    "搴旂敤绋嬪簭.ConnectionPool.executor": "Run",
-    "搴旂敤绋嬪簭.LogUtil.executor": "Run",
-    "搴旂敤绋嬪簭.PoolTest.executor": "Run"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;Tomcat 鏈嶅姟鍣?Tomcat 9.0.116.executor&quot;: &quot;Run&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;dev&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;妯″潡&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;,
+    &quot;搴旂敤绋嬪簭.ConnectionPool.executor&quot;: &quot;Run&quot;,
+    &quot;搴旂敤绋嬪簭.LogUtil.executor&quot;: &quot;Run&quot;,
+    &quot;搴旂敤绋嬪簭.PoolTest.executor&quot;: &quot;Run&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\klei\Desktop\RDC_second\RDC-xianyuMarket\rdc-admin-service\src\main" />
@@ -632,7 +632,9 @@ CREATE TABLE `sensitive_word`(
       <workItem from="1777272374262" duration="14549000" />
       <workItem from="1777388439311" duration="5144000" />
       <workItem from="1777432454138" duration="3077000" />
-      <workItem from="1777451305010" duration="7949000" />
+      <workItem from="1777451305010" duration="13581000" />
+      <workItem from="1777485979157" duration="205000" />
+      <workItem from="1777552010170" duration="617000" />
     </task>
     <servers />
   </component>
@@ -887,6 +889,19 @@ public @interface Select {
     String value();
 }
 
+===== FILE: rdc-common\src\main\java\com\klei\common\annotation\Transactional.java =====
+package com.klei.common.annotation;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Target({ElementType.TYPE, ElementType.METHOD})
+@Retention(RetentionPolicy.RUNTIME)
+public @interface Transactional {
+}
+
 ===== FILE: rdc-common\src\main\java\com\klei\common\annotation\Update.java =====
 package com.klei.common.annotation;
 
@@ -990,7 +1005,10 @@ public class AuthFilter implements Filter {
     // urlPattern -> permissionCode锛屽惎鍔ㄦ椂浠庢暟鎹簱鍔犺浇
     private final Map<String, String> urlPermissionMap = new LinkedHashMap<>();
     // 鐧藉悕鍗曡矾寰勶紝鏃犻渶鐧诲綍鍗冲彲璁块棶
-    private final List<String> whitelist = Arrays.asList("/login", "/register", "/captcha", "/upload");
+    private final List<String> whitelist = Arrays.asList(
+            "/login", "/register", "/captcha", "/upload",
+            "/forgot-password", "/reset-password", "/refresh-token"
+    );
 
     @Override
     public void init(FilterConfig filterConfig) {
@@ -999,9 +1017,11 @@ public class AuthFilter implements Filter {
 
     private void loadPermissions() {
         String sql = "SELECT url_pattern, code FROM sys_permission WHERE is_deleted = 0 AND url_pattern IS NOT NULL";
-        try (Connection conn = ConnectionPool.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
+        Connection conn = null;
+        try {
+            conn = ConnectionPool.getConnection();
+            PreparedStatement ps = conn.prepareStatement(sql);
+            ResultSet rs = ps.executeQuery();
             while (rs.next()) {
                 String pattern = rs.getString("url_pattern");
                 String code = rs.getString("code");
@@ -1009,9 +1029,15 @@ public class AuthFilter implements Filter {
                     urlPermissionMap.put(pattern, code);
                 }
             }
+            rs.close();
+            ps.close();
             LogUtil.info("AuthFilter 鍔犺浇鏉冮檺瑙勫垯: " + urlPermissionMap.size() + " 鏉?);
         } catch (SQLException e) {
             LogUtil.error("AuthFilter 鍔犺浇鏉冮檺閰嶇疆澶辫触", e);
+        } finally {
+            if (conn != null) {
+                try { conn.close(); } catch (SQLException ignored) {}
+            }
         }
     }
 
@@ -1023,7 +1049,6 @@ public class AuthFilter implements Filter {
         HttpServletResponse response = (HttpServletResponse) resp;
         String uri = request.getRequestURI();
         String contextPath = request.getContextPath();
-        // 鍘绘帀 contextPath锛屽緱鍒扮湡瀹炶矾寰?
         String path = uri.substring(contextPath.length());
 
         // 1. 鐧藉悕鍗曠洿鎺ユ斁琛?
@@ -1054,8 +1079,8 @@ public class AuthFilter implements Filter {
                 ? new ArrayList<>()
                 : Arrays.asList(permsStr.split(","));
 
-        // 4. 鏌?Redis 榛戝悕鍗曪紙RefreshToken 琚敞閿€锛?
-        String blacklistKey = "blacklist:refresh:" + userId;
+        // 4. 鏌?Redis 榛戝悕鍗曪紙璇ョ敤鎴?AccessToken 琚敞閿€锛?
+        String blacklistKey = "blacklist:access:" + userId;
         if (RedisUtil.exists(blacklistKey)) {
             writeJson(response, 401, Result.unauthorized());
             return;
@@ -1068,9 +1093,13 @@ public class AuthFilter implements Filter {
             return;
         }
 
-        // 6. 鎶?userId 鍜屾潈闄愬垪琛ㄦ寕鍒?request锛屽悗缁?Servlet/Service 鍙洿鎺ュ彇
+        // 6. 鎶?userId銆佹潈闄愩€佽鑹插垪琛ㄦ寕鍒?request锛屽悗缁?Servlet/Service 鐩存帴鍙?
         request.setAttribute("userId", userId);
         request.setAttribute("permissions", userPerms);
+        String rolesStr = jwt.getClaim("roles").asString();
+        request.setAttribute("roles", (rolesStr == null || rolesStr.isEmpty())
+                ? new ArrayList<>()
+                : Arrays.asList(rolesStr.split(",")));
 
         chain.doFilter(req, resp);
     }
@@ -1087,7 +1116,8 @@ public class AuthFilter implements Filter {
     private String matchPermission(String path) {
         for (Map.Entry<String, String> entry : urlPermissionMap.entrySet()) {
             String pattern = entry.getKey();
-            if (pattern.endsWith("*")) {
+            if (pattern.endsWith("/*")) {
+                // 淇锛?admin/* 鍖归厤 /admin/xxx锛屼笉鍖归厤 /admin123
                 String prefix = pattern.substring(0, pattern.length() - 1);
                 if (path.startsWith(prefix)) {
                     return entry.getValue();
@@ -1206,10 +1236,16 @@ package com.klei.common.ioc;
 
 import com.klei.common.annotation.Autowired;
 import com.klei.common.annotation.Component;
+import com.klei.common.annotation.Transactional;
+import com.klei.common.mapper.MapperProxyFactory;
+import com.klei.common.transaction.TransactionalProxy;
 import com.klei.common.utils.LogUtil;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -1241,7 +1277,7 @@ public class IoCContainer {
             scanDirectory(dir, basePackage);
             doInjection();
 
-            LogUtil.info("IoC瀹瑰櫒鍒濆鍖栧畬鎴愶紝鍏辨敞鍐?" + beanMap.size() + " 涓狟ean");
+            LogUtil.info("IoC瀹瑰櫒鍒濆鍖栧畬鎴愶紝鍏辨敞鍐? + beanMap.size() + " 涓狟ean");
         } catch (Exception e) {
             LogUtil.error("IoC瀹瑰櫒鍚姩澶辫触", e);
             throw new RuntimeException("IoC瀹瑰櫒鍚姩澶辫触", e);
@@ -1276,17 +1312,49 @@ public class IoCContainer {
             return;
         }
         try {
-            Object instance = clazz.getDeclaredConstructor().newInstance();
-            beanMap.put(clazz, instance);
+            Object raw = clazz.getDeclaredConstructor().newInstance();
+            Object bean = raw;
+
+            // 浼狝OP锛氭湁@Transactional涓斿疄鐜颁簡鎺ュ彛锛屽寘JDK鍔ㄦ€佷唬鐞?
+            if (needTransactionalProxy(clazz)) {
+                Class<?> iface = findFirstInterface(clazz);
+                if (iface != null) {
+                    bean = TransactionalProxy.wrap(iface, raw);
+                    beanMap.put(iface, bean);
+                    LogUtil.info("IoC娉ㄥ唽浜嬪姟浠ｇ悊: " + iface.getName());
+                } else {
+                    LogUtil.warn("绫?" + clazz.getName() + " 鏈堾Transactional浣嗘棤鎺ュ彛锛屾棤娉曞垱寤篔DK浠ｇ悊");
+                }
+            }
+
+            beanMap.put(clazz, bean);
             LogUtil.info("IoC娉ㄥ唽Bean: " + clazz.getName());
         } catch (Exception e) {
             LogUtil.error("IoC瀹炰緥鍖栧け璐? " + clazz.getName(), e);
         }
     }
 
+    private static boolean needTransactionalProxy(Class<?> clazz) {
+        if (clazz.isAnnotationPresent(Transactional.class)) {
+            return true;
+        }
+        for (Method m : clazz.getDeclaredMethods()) {
+            if (m.isAnnotationPresent(Transactional.class)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static Class<?> findFirstInterface(Class<?> clazz) {
+        Class<?>[] interfaces = clazz.getInterfaces();
+        return interfaces.length > 0 ? interfaces[0] : null;
+    }
+
     private static void doInjection() {
         for (Object bean : beanMap.values()) {
-            Class<?> clazz = bean.getClass();
+            Object target = unwrapProxy(bean);
+            Class<?> clazz = target.getClass();
             for (Field field : clazz.getDeclaredFields()) {
                 if (!field.isAnnotationPresent(Autowired.class)) {
                     continue;
@@ -1294,20 +1362,60 @@ public class IoCContainer {
                 field.setAccessible(true);
                 Class<?> fieldType = field.getType();
 
-                Object dependency = beanMap.get(fieldType);
+                Object dependency = findBean(fieldType);
+
+                // 鎺ュ彛绫诲瀷鎵句笉鍒癇ean鏃讹紝鑷姩鍒涘缓Mapper浠ｇ悊
+                if (dependency == null && fieldType.isInterface()) {
+                    try {
+                        dependency = MapperProxyFactory.getMapper(fieldType);
+                        beanMap.put(fieldType, dependency);
+                        LogUtil.info("IoC鑷姩娉ㄥ唽Mapper: " + fieldType.getName());
+                    } catch (Exception e) {
+                        LogUtil.warn("IoC娉ㄥ叆璺宠繃锛屾棤娉曞垱寤篗apper浠ｇ悊: " + fieldType.getName());
+                        continue;
+                    }
+                }
+
                 if (dependency == null) {
                     LogUtil.warn("IoC娉ㄥ叆璺宠繃锛屾湭鎵惧埌Bean: " + fieldType.getName() + " -> " + clazz.getName() + "." + field.getName());
                     continue;
                 }
 
                 try {
-                    field.set(bean, dependency);
-                    LogUtil.info("IoC娉ㄥ叆: " + clazz.getSimpleName() + "." + field.getName() + " = " + fieldType.getSimpleName());
+                    field.set(target, dependency);
+                    LogUtil.info("IoC娉ㄥ叆: " + clazz.getSimpleName() + "." + field.getName() + " = " + dependency.getClass().getSimpleName());
                 } catch (IllegalAccessException e) {
                     LogUtil.error("IoC娉ㄥ叆澶辫触: " + clazz.getName() + "." + field.getName(), e);
                 }
             }
         }
+    }
+
+    private static Object unwrapProxy(Object bean) {
+        if (bean == null) {
+            return null;
+        }
+        if (Proxy.isProxyClass(bean.getClass())) {
+            InvocationHandler h = Proxy.getInvocationHandler(bean);
+            if (h instanceof TransactionalProxy) {
+                return ((TransactionalProxy) h).getTarget();
+            }
+        }
+        return bean;
+    }
+
+    private static Object findBean(Class<?> type) {
+        Object bean = beanMap.get(type);
+        if (bean != null) {
+            return bean;
+        }
+        // 鎸夋帴鍙?鐖剁被鍖归厤
+        for (Map.Entry<Class<?>, Object> entry : beanMap.entrySet()) {
+            if (type.isAssignableFrom(entry.getKey())) {
+                return entry.getValue();
+            }
+        }
+        return null;
     }
 
     @SuppressWarnings("unchecked")
@@ -1356,9 +1464,10 @@ public class AppContextListener implements ServletContextListener {
 package com.klei.common.mapper;
 
 import com.klei.common.annotation.*;
-import com.klei.common.utils.ResultSetMapper;
 import com.klei.common.pool.ConnectionPool;
+import com.klei.common.transaction.TransactionManager;
 import com.klei.common.utils.LogUtil;
+import com.klei.common.utils.ResultSetMapper;
 
 import java.lang.reflect.*;
 import java.sql.*;
@@ -1389,8 +1498,22 @@ public class MapperProxy implements InvocationHandler {
             throw new RuntimeException("Mapper 鏂规硶缂哄皯 SQL 娉ㄨВ: " + method.getName());
         }
 
-        try (Connection conn = ConnectionPool.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql, isSelect ? Statement.NO_GENERATED_KEYS : Statement.RETURN_GENERATED_KEYS)) {
+        Connection conn = null;
+        boolean inTx = false;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        ResultSet keys = null;
+
+        try {
+            // 浼樺厛浠庝簨鍔＄鐞嗗櫒鑾峰彇杩炴帴
+            conn = TransactionManager.getCurrentConnection();
+            if (conn != null) {
+                inTx = true;
+            } else {
+                conn = ConnectionPool.getConnection();
+            }
+
+            ps = conn.prepareStatement(sql, isSelect ? Statement.NO_GENERATED_KEYS : Statement.RETURN_GENERATED_KEYS);
 
             if (args != null) {
                 for (int i = 0; i < args.length; i++) {
@@ -1399,14 +1522,18 @@ public class MapperProxy implements InvocationHandler {
             }
 
             if (isSelect) {
-                ResultSet rs = ps.executeQuery();
+                rs = ps.executeQuery();
                 return handleQuery(rs, method);
             } else {
                 int rows = ps.executeUpdate();
-                if (method.isAnnotationPresent(Insert.class) && method.getReturnType() == Long.class) {
-                    ResultSet keys = ps.getGeneratedKeys();
-                    if (keys.next()) {
-                        return keys.getLong(1);
+                if (method.isAnnotationPresent(Insert.class)) {
+                    Class<?> returnType = method.getReturnType();
+                    if (returnType == Long.class || returnType == long.class) {
+                        keys = ps.getGeneratedKeys();
+                        if (keys.next()) {
+                            long key = keys.getLong(1);
+                            return returnType == long.class ? key : Long.valueOf(key);
+                        }
                     }
                 }
                 return rows;
@@ -1414,6 +1541,20 @@ public class MapperProxy implements InvocationHandler {
         } catch (SQLException e) {
             LogUtil.error("Mapper 鎵ц澶辫触 [" + sql + "]", e);
             throw new RuntimeException("鏁版嵁搴撴搷浣滃け璐? " + e.getMessage(), e);
+        } finally {
+            if (keys != null) {
+                try { keys.close(); } catch (SQLException ignored) {}
+            }
+            if (rs != null) {
+                try { rs.close(); } catch (SQLException ignored) {}
+            }
+            if (ps != null) {
+                try { ps.close(); } catch (SQLException ignored) {}
+            }
+            // 浜嬪姟涓殑杩炴帴涓嶅叧闂紝鐢?TransactionManager 缁熶竴鍏抽棴
+            if (!inTx && conn != null) {
+                try { conn.close(); } catch (SQLException ignored) {}
+            }
         }
     }
 
@@ -1638,6 +1779,284 @@ public class PooledConnectionHandler implements InvocationHandler {
     }
 }
 
+===== FILE: rdc-common\src\main\java\com\klei\common\servlet\BaseServlet.java =====
+package com.klei.common.servlet;
+
+import com.klei.common.annotation.RequirePermission;
+import com.klei.common.annotation.RequireRole;
+import com.klei.common.exception.AuthException;
+import com.klei.common.utils.JwtUtil;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.List;
+
+public abstract class BaseServlet extends HttpServlet {
+
+    @Override
+    protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        // 鏍规嵁 HTTP 鏂规硶鎵惧瓙绫婚噸鍐欑殑鏂规硶
+        String httpMethod = req.getMethod().toUpperCase();
+        String methodName = "do" + httpMethod.substring(0, 1) + httpMethod.substring(1).toLowerCase();
+        Method targetMethod = findMethod(this.getClass(), methodName);
+
+        // 瑙ｆ瀽骞舵牎楠屾敞瑙?
+        if (targetMethod != null) {
+            checkRole(req, targetMethod);
+            checkPermission(req, targetMethod);
+        }
+
+        super.service(req, resp);
+    }
+
+    private Method findMethod(Class<?> clazz, String name) {
+        while (clazz != null && clazz != HttpServlet.class) {
+            try {
+                return clazz.getDeclaredMethod(name, HttpServletRequest.class, HttpServletResponse.class);
+            } catch (NoSuchMethodException e) {
+                clazz = clazz.getSuperclass();
+            }
+        }
+        return null;
+    }
+
+    private void checkRole(HttpServletRequest req, Method method) {
+        RequireRole requireRole = method.getAnnotation(RequireRole.class);
+        if (requireRole == null) {
+            requireRole = this.getClass().getAnnotation(RequireRole.class);
+        }
+        if (requireRole == null) {
+            return;
+        }
+
+        String token = JwtUtil.extractToken(req);
+        List<String> roles = JwtUtil.getRoles(token);
+        List<String> required = Arrays.asList(requireRole.value());
+
+        boolean has = required.stream().anyMatch(roles::contains);
+        if (!has) {
+            throw new AuthException(403, "闇€瑕佽鑹? " + required);
+        }
+    }
+
+    private void checkPermission(HttpServletRequest req, Method method) {
+        RequirePermission requirePerm = method.getAnnotation(RequirePermission.class);
+        if (requirePerm == null) {
+            requirePerm = this.getClass().getAnnotation(RequirePermission.class);
+        }
+        if (requirePerm == null) {
+            return;
+        }
+
+        String token = JwtUtil.extractToken(req);
+        List<String> perms = JwtUtil.getPermissions(token);
+        List<String> required = Arrays.asList(requirePerm.value());
+
+        boolean has = required.stream().anyMatch(perms::contains);
+        if (!has) {
+            throw new AuthException(403, "闇€瑕佹潈闄? " + required);
+        }
+    }
+}
+
+===== FILE: rdc-common\src\main\java\com\klei\common\transaction\TransactionalProxy.java =====
+package com.klei.common.transaction;
+
+import com.klei.common.annotation.Transactional;
+
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
+
+public class TransactionalProxy implements InvocationHandler {
+
+    private final Object target;
+
+    public TransactionalProxy(Object target) {
+        this.target = target;
+    }
+
+    public Object getTarget() {
+        return target;
+    }
+
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        boolean needTx = method.isAnnotationPresent(Transactional.class)
+                || target.getClass().isAnnotationPresent(Transactional.class);
+
+        if (!needTx) {
+            return method.invoke(target, args);
+        }
+
+        try {
+            TransactionManager.begin();
+            Object result = method.invoke(target, args);
+            TransactionManager.commit();
+            return result;
+        } catch (InvocationTargetException e) {
+            TransactionManager.rollback();
+            throw e.getTargetException();
+        } catch (Exception e) {
+            TransactionManager.rollback();
+            throw e;
+        } finally {
+            TransactionManager.close();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public static <T> T wrap(@org.jetbrains.annotations.UnknownNullability Class<?> interfaceClass, Object target) {
+        return (T) Proxy.newProxyInstance(
+                interfaceClass.getClassLoader(),
+                new Class<?>[]{interfaceClass},
+                new TransactionalProxy(target)
+        );
+    }
+}
+
+===== FILE: rdc-common\src\main\java\com\klei\common\transaction\TransactionManager.java =====
+package com.klei.common.transaction;
+
+import com.klei.common.pool.ConnectionPool;
+
+import java.sql.Connection;
+import java.sql.SQLException;
+
+public class TransactionManager {
+
+    private static final ThreadLocal<Connection> HOLDER = new ThreadLocal<>();
+    private static final ThreadLocal<Integer> COUNTER = new ThreadLocal<>(); 
+
+    public static void begin() throws SQLException {
+        Integer count = COUNTER.get();
+        if (count == null) {
+            COUNTER.set(1);
+            Connection conn = ConnectionPool.getConnection();
+            conn.setAutoCommit(false);
+            HOLDER.set(conn);
+        } else {
+            // 宓屽浜嬪姟锛屽鐢ㄨ繛鎺?
+            COUNTER.set(count + 1);
+        }
+    }
+
+    public static void commit() {
+        Integer count = COUNTER.get();
+        if (count == null) {
+            return;
+        }
+        if (count == 1) {
+            Connection conn = HOLDER.get();
+            if (conn != null) {
+                try {
+                    conn.commit();
+                } catch (SQLException e) {
+                    throw new RuntimeException("浜嬪姟鎻愪氦澶辫触", e);
+                }
+            }
+            COUNTER.remove();
+        } else {
+            COUNTER.set(count - 1);
+        }
+    }
+
+    public static void rollback() {
+        Integer count = COUNTER.get();
+        if (count == null) {
+            return;
+        }
+        if (count == 1) {
+            Connection conn = HOLDER.get();
+            if (conn != null) {
+                try {
+                    conn.rollback();
+                } catch (SQLException e) {
+                    throw new RuntimeException("浜嬪姟鍥炴粴澶辫触", e);
+                }
+            }
+            COUNTER.remove();
+        } else {
+            COUNTER.set(count - 1);
+        }
+    }
+
+    public static void close() {
+        Integer count = COUNTER.get();
+        if (count == null) {
+            return;
+        }
+        if (count == 1) {
+            Connection conn = HOLDER.get();
+            if (conn != null) {
+                try {
+                    conn.setAutoCommit(true);
+                    conn.close();
+                } catch (SQLException e) {
+                    throw new RuntimeException("鍏抽棴浜嬪姟杩炴帴澶辫触", e);
+                } finally {
+                    HOLDER.remove();
+                    COUNTER.remove();
+                }
+            }
+        } else {
+            COUNTER.set(count - 1);
+        }
+    }
+
+    public static Connection getCurrentConnection() {
+        return HOLDER.get();
+    }
+}
+
+===== FILE: rdc-common\src\main\java\com\klei\common\utils\AuthUtil.java =====
+package com.klei.common.utils;
+
+import com.klei.common.exception.AuthException;
+
+import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
+import java.util.List;
+
+public class AuthUtil {
+
+    public static Long getUserId(HttpServletRequest req) {
+        return (Long) req.getAttribute("userId");
+    }
+
+    @SuppressWarnings("unchecked")
+    public static List<String> getRoles(HttpServletRequest req) {
+        return (List<String>) req.getAttribute("roles");
+    }
+
+    @SuppressWarnings("unchecked")
+    public static List<String> getPermissions(HttpServletRequest req) {
+        return (List<String>) req.getAttribute("permissions");
+    }
+
+    public static void checkRole(HttpServletRequest req, String... requiredRoles) {
+        List<String> roles = getRoles(req);
+        boolean has = Arrays.stream(requiredRoles).anyMatch(roles::contains);
+        if (!has) {
+            throw new AuthException(403, "闇€瑕佽鑹? " + Arrays.toString(requiredRoles));
+        }
+    }
+
+    public static void checkPermission(HttpServletRequest req, String... requiredPerms) {
+        List<String> perms = getPermissions(req);
+        boolean has = Arrays.stream(requiredPerms).anyMatch(perms::contains);
+        if (!has) {
+            throw new AuthException(403, "闇€瑕佹潈闄? " + Arrays.toString(requiredPerms));
+        }
+    }
+}
+
 ===== FILE: rdc-common\src\main\java\com\klei\common\utils\FileUploadUtil.java =====
 package com.klei.common.utils;
 
@@ -1742,12 +2161,13 @@ public class JwtUtil {
     // RefreshToken: 7澶?
     private static final long REFRESH_EXPIRE = 7 * 24 * 60 * 60 * 1000;
 
-    public static String createAccessToken(Long userId, List<String> permissions) {
+    public static String createAccessToken(Long userId, List<String> permissions, List<String> roles) {
         Date now = new Date();
         Date expire = new Date(now.getTime() + ACCESS_EXPIRE);
         return JWT.create()
                 .withClaim("userId", userId)
                 .withClaim("perms", String.join(",", permissions))
+                .withClaim("roles", String.join(",", roles))
                 .withIssuedAt(now)
                 .withExpiresAt(expire)
                 .sign(ALGORITHM);
@@ -1781,6 +2201,14 @@ public class JwtUtil {
             return List.of();
         }
         return Arrays.asList(perms.split(","));
+    }
+
+    public static List<String> getRoles(String token) {
+        String roles = verify(token).getClaim("roles").asString();
+        if (roles == null || roles.isEmpty()) {
+            return List.of();
+        }
+        return Arrays.asList(roles.split(","));
     }
 
     public static String extractToken(HttpServletRequest request) {
@@ -1921,6 +2349,11 @@ package com.klei.common.utils;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
+import redis.clients.jedis.params.SetParams;
+
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class RedisUtil {
 
@@ -1931,10 +2364,10 @@ public class RedisUtil {
         config.setMaxTotal(20);
         config.setMaxIdle(10);
         config.setMinIdle(5);
-        // Docker Redis锛氭湰鏈?6379锛屾棤瀵嗙爜
         POOL = new JedisPool(config, "localhost", 6379, 5000);
     }
 
+    // ========== String ==========
     public static String get(String key) {
         try (Jedis jedis = POOL.getResource()) {
             return jedis.get(key);
@@ -1950,6 +2383,22 @@ public class RedisUtil {
     public static void setex(String key, int seconds, String value) {
         try (Jedis jedis = POOL.getResource()) {
             jedis.setex(key, seconds, value);
+        }
+    }
+
+    // 鍒嗗竷寮忛攣鏍稿績锛歴et if not exists
+    public static boolean setnx(String key, String value) {
+        try (Jedis jedis = POOL.getResource()) {
+            return jedis.setnx(key, value) == 1;
+        }
+    }
+
+
+    // 甯﹁繃鏈熸椂闂寸殑 setnx锛堝師瀛愭搷浣滐級
+    public static boolean setnxex(String key, String value, int seconds) {
+        try (Jedis jedis = POOL.getResource()) {
+            String result = jedis.set(key, value, SetParams.setParams().nx().ex(seconds));
+            return "OK".equals(result);
         }
     }
 
@@ -1971,18 +2420,126 @@ public class RedisUtil {
         }
     }
 
-    public static long incr(String key) {
-        try (Jedis jedis = POOL.getResource()) {
-            return jedis.incr(key);
-        }
-    }
-
     public static long ttl(String key) {
         try (Jedis jedis = POOL.getResource()) {
             return jedis.ttl(key);
         }
     }
 
+    public static long incr(String key) {
+        try (Jedis jedis = POOL.getResource()) {
+            return jedis.incr(key);
+        }
+    }
+
+    public static long incrBy(String key, long increment) {
+        try (Jedis jedis = POOL.getResource()) {
+            return jedis.incrBy(key, increment);
+        }
+    }
+
+    // ========== List锛堥槦鍒楋級 ==========
+    public static long lpush(String key, String... values) {
+        try (Jedis jedis = POOL.getResource()) {
+            return jedis.lpush(key, values);
+        }
+    }
+
+    public static String rpop(String key) {
+        try (Jedis jedis = POOL.getResource()) {
+            return jedis.rpop(key);
+        }
+    }
+
+    public static String lpop(String key) {
+        try (Jedis jedis = POOL.getResource()) {
+            return jedis.lpop(key);
+        }
+    }
+
+    public static long llen(String key) {
+        try (Jedis jedis = POOL.getResource()) {
+            return jedis.llen(key);
+        }
+    }
+
+    public static List<String> lrange(String key, long start, long end) {
+        try (Jedis jedis = POOL.getResource()) {
+            return jedis.lrange(key, start, end);
+        }
+    }
+
+    // ========== Set ==========
+    public static long sadd(String key, String... members) {
+        try (Jedis jedis = POOL.getResource()) {
+            return jedis.sadd(key, members);
+        }
+    }
+
+    public static long srem(String key, String... members) {
+        try (Jedis jedis = POOL.getResource()) {
+            return jedis.srem(key, members);
+        }
+    }
+
+    public static boolean sismember(String key, String member) {
+        try (Jedis jedis = POOL.getResource()) {
+            return jedis.sismember(key, member);
+        }
+    }
+
+    public static Set<String> smembers(String key) {
+        try (Jedis jedis = POOL.getResource()) {
+            return jedis.smembers(key);
+        }
+    }
+
+    // ========== Hash ==========
+    public static void hset(String key, String field, String value) {
+        try (Jedis jedis = POOL.getResource()) {
+            jedis.hset(key, field, value);
+        }
+    }
+
+    public static String hget(String key, String field) {
+        try (Jedis jedis = POOL.getResource()) {
+            return jedis.hget(key, field);
+        }
+    }
+
+    public static Map<String, String> hgetAll(String key) {
+        try (Jedis jedis = POOL.getResource()) {
+            return jedis.hgetAll(key);
+        }
+    }
+
+    public static long hdel(String key, String... fields) {
+        try (Jedis jedis = POOL.getResource()) {
+            return jedis.hdel(key, fields);
+        }
+    }
+
+    // ========== 鎵归噺 & 妯＄硦 ==========
+    public static List<String> mget(String... keys) {
+        try (Jedis jedis = POOL.getResource()) {
+            return jedis.mget(keys);
+        }
+    }
+
+    public static void mset(String... keyvalues) {
+        try (Jedis jedis = POOL.getResource()) {
+            jedis.mset(keyvalues);
+        }
+    }
+
+    // 鎸夊墠缂€鏌?keys锛堝皬椤圭洰鍙敤锛岀敓浜х敤 scan锛?
+    public static Set<String> keys(String pattern) {
+        try (Jedis jedis = POOL.getResource()) {
+            return jedis.keys(pattern);
+        }
+    }
+
+    // ========== 璧勬簮鍏抽棴 ==========
     public static void close() {
         if (POOL != null && !POOL.isClosed()) {
             POOL.close();
@@ -2126,29 +2683,60 @@ public class ResultSetMapper {
         if (targetType.isAssignableFrom(value.getClass())) {
             return value;
         }
-        if (targetType == Long.class || targetType == long.class) {
-            if (value instanceof Number) {
-                return ((Number) value).longValue();
+
+        // Number 缁熶竴澶勭悊锛圛nteger, Long, BigDecimal, Float, Double 绛夛級
+        if (value instanceof Number) {
+            Number num = (Number) value;
+            if (targetType == Long.class || targetType == long.class) {
+                return num.longValue();
+            }
+            if (targetType == Integer.class || targetType == int.class) {
+                return num.intValue();
+            }
+            if (targetType == Double.class || targetType == double.class) {
+                return num.doubleValue();
+            }
+            if (targetType == Float.class || targetType == float.class) {
+                return num.floatValue();
+            }
+            if (targetType == Short.class || targetType == short.class) {
+                return num.shortValue();
+            }
+            if (targetType == Byte.class || targetType == byte.class) {
+                return num.byteValue();
+            }
+            if (targetType == Boolean.class || targetType == boolean.class) {
+                return num.intValue() != 0;
             }
         }
-        if (targetType == Integer.class || targetType == int.class) {
-            if (value instanceof Number) {
-                return ((Number) value).intValue();
-            }
-        }
-        if (targetType == Double.class || targetType == double.class) {
-            if (value instanceof Number) {
-                return ((Number) value).doubleValue();
-            }
-        }
+
         if (targetType == String.class) {
             return value.toString();
         }
+
         if (targetType == LocalDateTime.class) {
             if (value instanceof Timestamp) {
                 return ((Timestamp) value).toLocalDateTime();
             }
+            if (value instanceof java.sql.Date) {
+                return ((java.sql.Date) value).toLocalDate().atStartOfDay();
+            }
         }
+
+        // 鏋氫妇绫诲瀷鏄犲皠锛堟暟鎹簱 ENUM/瀛楃涓?-> Java Enum锛?
+        if (targetType.isEnum()) {
+            if (value instanceof String) {
+                String enumStr = ((String) value).trim();
+                try {
+                    @SuppressWarnings({"unchecked", "rawtypes"})
+                    Object enumValue = Enum.valueOf((Class<Enum>) targetType, enumStr);
+                    return enumValue;
+                } catch (IllegalArgumentException e) {
+                    throw new RuntimeException("鏋氫妇鏄犲皠澶辫触: " + targetType.getSimpleName() + " 涓嶅瓨鍦ㄥ€?'" + enumStr + "'", e);
+                }
+            }
+        }
+
         return value;
     }
 

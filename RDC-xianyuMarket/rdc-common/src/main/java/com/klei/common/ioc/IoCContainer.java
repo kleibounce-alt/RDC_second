@@ -2,11 +2,16 @@ package com.klei.common.ioc;
 
 import com.klei.common.annotation.Autowired;
 import com.klei.common.annotation.Component;
+import com.klei.common.annotation.Transactional;
 import com.klei.common.mapper.MapperProxyFactory;
+import com.klei.common.transaction.TransactionalProxy;
 import com.klei.common.utils.LogUtil;
 
 import java.io.File;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationHandler;
+import java.lang.reflect.Method;
+import java.lang.reflect.Proxy;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
@@ -73,17 +78,49 @@ public class IoCContainer {
             return;
         }
         try {
-            Object instance = clazz.getDeclaredConstructor().newInstance();
-            beanMap.put(clazz, instance);
+            Object raw = clazz.getDeclaredConstructor().newInstance();
+            Object bean = raw;
+
+            // 伪AOP：有@Transactional且实现了接口，包JDK动态代理
+            if (needTransactionalProxy(clazz)) {
+                Class<?> iface = findFirstInterface(clazz);
+                if (iface != null) {
+                    bean = TransactionalProxy.wrap(iface, raw);
+                    beanMap.put(iface, bean);
+                    LogUtil.info("IoC注册事务代理: " + iface.getName());
+                } else {
+                    LogUtil.warn("类 " + clazz.getName() + " 有@Transactional但无接口，无法创建JDK代理");
+                }
+            }
+
+            beanMap.put(clazz, bean);
             LogUtil.info("IoC注册Bean: " + clazz.getName());
         } catch (Exception e) {
             LogUtil.error("IoC实例化失败: " + clazz.getName(), e);
         }
     }
 
+    private static boolean needTransactionalProxy(Class<?> clazz) {
+        if (clazz.isAnnotationPresent(Transactional.class)) {
+            return true;
+        }
+        for (Method m : clazz.getDeclaredMethods()) {
+            if (m.isAnnotationPresent(Transactional.class)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static Class<?> findFirstInterface(Class<?> clazz) {
+        Class<?>[] interfaces = clazz.getInterfaces();
+        return interfaces.length > 0 ? interfaces[0] : null;
+    }
+
     private static void doInjection() {
         for (Object bean : beanMap.values()) {
-            Class<?> clazz = bean.getClass();
+            Object target = unwrapProxy(bean);
+            Class<?> clazz = target.getClass();
             for (Field field : clazz.getDeclaredFields()) {
                 if (!field.isAnnotationPresent(Autowired.class)) {
                     continue;
@@ -91,8 +128,9 @@ public class IoCContainer {
                 field.setAccessible(true);
                 Class<?> fieldType = field.getType();
 
-                Object dependency = beanMap.get(fieldType);
+                Object dependency = findBean(fieldType);
 
+                // 接口类型找不到Bean时，自动创建Mapper代理
                 if (dependency == null && fieldType.isInterface()) {
                     try {
                         dependency = MapperProxyFactory.getMapper(fieldType);
@@ -110,13 +148,40 @@ public class IoCContainer {
                 }
 
                 try {
-                    field.set(bean, dependency);
-                    LogUtil.info("IoC注入: " + clazz.getSimpleName() + "." + field.getName() + " = " + fieldType.getSimpleName());
+                    field.set(target, dependency);
+                    LogUtil.info("IoC注入: " + clazz.getSimpleName() + "." + field.getName() + " = " + dependency.getClass().getSimpleName());
                 } catch (IllegalAccessException e) {
                     LogUtil.error("IoC注入失败: " + clazz.getName() + "." + field.getName(), e);
                 }
             }
         }
+    }
+
+    private static Object unwrapProxy(Object bean) {
+        if (bean == null) {
+            return null;
+        }
+        if (Proxy.isProxyClass(bean.getClass())) {
+            InvocationHandler h = Proxy.getInvocationHandler(bean);
+            if (h instanceof TransactionalProxy) {
+                return ((TransactionalProxy) h).getTarget();
+            }
+        }
+        return bean;
+    }
+
+    private static Object findBean(Class<?> type) {
+        Object bean = beanMap.get(type);
+        if (bean != null) {
+            return bean;
+        }
+        // 按接口/父类匹配
+        for (Map.Entry<Class<?>, Object> entry : beanMap.entrySet()) {
+            if (type.isAssignableFrom(entry.getKey())) {
+                return entry.getValue();
+            }
+        }
+        return null;
     }
 
     @SuppressWarnings("unchecked")

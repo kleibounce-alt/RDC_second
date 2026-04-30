@@ -1,9 +1,10 @@
 package com.klei.common.mapper;
 
 import com.klei.common.annotation.*;
-import com.klei.common.utils.ResultSetMapper;
 import com.klei.common.pool.ConnectionPool;
+import com.klei.common.transaction.TransactionManager;
 import com.klei.common.utils.LogUtil;
+import com.klei.common.utils.ResultSetMapper;
 
 import java.lang.reflect.*;
 import java.sql.*;
@@ -35,9 +36,20 @@ public class MapperProxy implements InvocationHandler {
         }
 
         Connection conn = null;
+        boolean inTx = false;
         PreparedStatement ps = null;
+        ResultSet rs = null;
+        ResultSet keys = null;
+
         try {
-            conn = ConnectionPool.getConnection();
+            // 优先从事务管理器获取连接
+            conn = TransactionManager.getCurrentConnection();
+            if (conn != null) {
+                inTx = true;
+            } else {
+                conn = ConnectionPool.getConnection();
+            }
+
             ps = conn.prepareStatement(sql, isSelect ? Statement.NO_GENERATED_KEYS : Statement.RETURN_GENERATED_KEYS);
 
             if (args != null) {
@@ -47,18 +59,16 @@ public class MapperProxy implements InvocationHandler {
             }
 
             if (isSelect) {
-                ResultSet rs = ps.executeQuery();
+                rs = ps.executeQuery();
                 return handleQuery(rs, method);
             } else {
                 int rows = ps.executeUpdate();
-                // 修复：支持 Long 包装类和 long 基本类型返回主键
                 if (method.isAnnotationPresent(Insert.class)) {
                     Class<?> returnType = method.getReturnType();
                     if (returnType == Long.class || returnType == long.class) {
-                        ResultSet keys = ps.getGeneratedKeys();
+                        keys = ps.getGeneratedKeys();
                         if (keys.next()) {
                             long key = keys.getLong(1);
-                            keys.close();
                             return returnType == long.class ? key : Long.valueOf(key);
                         }
                     }
@@ -69,8 +79,17 @@ public class MapperProxy implements InvocationHandler {
             LogUtil.error("Mapper 执行失败 [" + sql + "]", e);
             throw new RuntimeException("数据库操作失败: " + e.getMessage(), e);
         } finally {
-            // 确保连接归还
-            if (conn != null) {
+            if (keys != null) {
+                try { keys.close(); } catch (SQLException ignored) {}
+            }
+            if (rs != null) {
+                try { rs.close(); } catch (SQLException ignored) {}
+            }
+            if (ps != null) {
+                try { ps.close(); } catch (SQLException ignored) {}
+            }
+            // 事务中的连接不关闭，由 TransactionManager 统一关闭
+            if (!inTx && conn != null) {
                 try { conn.close(); } catch (SQLException ignored) {}
             }
         }
@@ -92,24 +111,19 @@ public class MapperProxy implements InvocationHandler {
             while (rs.next()) {
                 list.add(ResultSetMapper.mapRow(rs, elementType));
             }
-            rs.close();
             return list;
         }
 
         if (returnType.isPrimitive() || ResultSetMapper.isWrapperType(returnType) || returnType == String.class) {
-            Object result = null;
             if (rs.next()) {
-                result = rs.getObject(1);
+                return rs.getObject(1);
             }
-            rs.close();
-            return result;
+            return null;
         }
 
-        Object result = null;
         if (rs.next()) {
-            result = ResultSetMapper.mapRow(rs, returnType);
+            return ResultSetMapper.mapRow(rs, returnType);
         }
-        rs.close();
-        return result;
+        return null;
     }
 }
