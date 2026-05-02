@@ -18,14 +18,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.*;
 
 public class AuthFilter implements Filter {
 
     private final Gson gson = new Gson();
-    // urlPattern -> permissionCode，启动时从数据库加载
     private final Map<String, String> urlPermissionMap = new LinkedHashMap<>();
-    // 白名单路径，无需登录即可访问
     private final List<String> whitelist = Arrays.asList(
             "/login", "/register", "/captcha", "/upload",
             "/forgot-password", "/reset-password", "/refresh-token"
@@ -72,20 +71,17 @@ public class AuthFilter implements Filter {
         String contextPath = request.getContextPath();
         String path = uri.substring(contextPath.length());
 
-        // 1. 白名单直接放行
         if (isWhitelisted(path)) {
             chain.doFilter(req, resp);
             return;
         }
 
-        // 2. 提取 Token
         String token = JwtUtil.extractToken(request);
         if (token == null) {
             writeJson(response, 401, Result.unauthorized());
             return;
         }
 
-        // 3. 验证 Token 有效性
         DecodedJWT jwt;
         try {
             jwt = JwtUtil.verify(token);
@@ -99,29 +95,46 @@ public class AuthFilter implements Filter {
         List<String> userPerms = (permsStr == null || permsStr.isEmpty())
                 ? new ArrayList<>()
                 : Arrays.asList(permsStr.split(","));
+        String rolesStr = jwt.getClaim("roles").asString();
+        List<String> userRoles = (rolesStr == null || rolesStr.isEmpty())
+                ? new ArrayList<>()
+                : Arrays.asList(rolesStr.split(","));
 
-        // 4. 查 Redis 黑名单（该用户 AccessToken 被注销）
+        // ===== 封禁检查：未到期拦截，已过期自动解封 =====
+        Date banEndTimeClaim = jwt.getClaim("banEndTime").asDate();
+        if (banEndTimeClaim != null) {
+            LocalDateTime banEnd = new java.sql.Timestamp(banEndTimeClaim.getTime()).toLocalDateTime();
+            if (LocalDateTime.now().isBefore(banEnd)) {
+                writeJson(response, 403, Result.fail("账号封禁中，解封时间：" + banEnd));
+                return;
+            } else {
+                try (Connection conn = ConnectionPool.getConnection();
+                     PreparedStatement ps = conn.prepareStatement(
+                             "UPDATE sys_user SET status = 'NORMAL', ban_end_time = NULL, updated_at = NOW() WHERE id = ?")) {
+                    ps.setLong(1, userId);
+                    ps.executeUpdate();
+                } catch (SQLException e) {
+                    LogUtil.error("自动解封用户失败 uid=" + userId, e);
+                }
+            }
+        }
+        // =================================================
+
         String blacklistKey = "blacklist:access:" + userId;
         if (RedisUtil.exists(blacklistKey)) {
             writeJson(response, 401, Result.unauthorized());
             return;
         }
 
-        // 5. URL 粗粒度权限拦截
         String requiredPerm = matchPermission(path);
         if (requiredPerm != null && !userPerms.contains(requiredPerm)) {
             writeJson(response, 403, Result.forbidden());
             return;
         }
 
-        // 6. 把 userId、权限、角色列表挂到 request，后续 Servlet/Service 直接取
         request.setAttribute("userId", userId);
         request.setAttribute("permissions", userPerms);
-        String rolesStr = jwt.getClaim("roles").asString();
-        request.setAttribute("roles", (rolesStr == null || rolesStr.isEmpty())
-                ? new ArrayList<>()
-                : Arrays.asList(rolesStr.split(",")));
-
+        request.setAttribute("roles", userRoles);
         request.setAttribute("vipLevel", jwt.getClaim("vipLevel").asInt());
         chain.doFilter(req, resp);
     }
@@ -139,7 +152,6 @@ public class AuthFilter implements Filter {
         for (Map.Entry<String, String> entry : urlPermissionMap.entrySet()) {
             String pattern = entry.getKey();
             if (pattern.endsWith("/*")) {
-                // 修正：/admin/* 匹配 /admin/xxx，不匹配 /admin123
                 String prefix = pattern.substring(0, pattern.length() - 1);
                 if (path.startsWith(prefix)) {
                     return entry.getValue();

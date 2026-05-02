@@ -19,18 +19,20 @@ public class JwtUtil {
     private static final long ACCESS_EXPIRE = 2 * 60 * 60 * 1000;
     private static final long REFRESH_EXPIRE = 7 * 24 * 60 * 60 * 1000;
 
-    // 增加 vipLevel
-    public static String createAccessToken(Long userId, List<String> permissions, List<String> roles, Integer vipLevel) {
+    public static String createAccessToken(Long userId, List<String> permissions, List<String> roles, Integer vipLevel, Date banEndTime) {
         Date now = new Date();
         Date expire = new Date(now.getTime() + ACCESS_EXPIRE);
-        return JWT.create()
+        var builder = JWT.create()
                 .withClaim("userId", userId)
                 .withClaim("perms", String.join(",", permissions))
                 .withClaim("roles", String.join(",", roles))
                 .withClaim("vipLevel", vipLevel == null ? 0 : vipLevel)
                 .withIssuedAt(now)
-                .withExpiresAt(expire)
-                .sign(ALGORITHM);
+                .withExpiresAt(expire);
+        if (banEndTime != null) {
+            builder.withClaim("banEndTime", banEndTime);
+        }
+        return builder.sign(ALGORITHM);
     }
 
     public static String createRefreshToken(Long userId) {
@@ -80,7 +82,6 @@ public class JwtUtil {
         }
         return Arrays.asList(roles.split(","));
     }
-
 
     public static Integer getVipLevel(String token) {
         return verify(token).getClaim("vipLevel").asInt();

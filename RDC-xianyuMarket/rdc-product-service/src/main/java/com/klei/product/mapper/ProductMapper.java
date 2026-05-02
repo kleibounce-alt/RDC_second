@@ -32,8 +32,8 @@ public interface ProductMapper {
     @Update("UPDATE product SET exposure_weight = ?, updated_at = NOW() WHERE id = ? AND is_deleted = 0")
     int updateExposureWeight(Integer exposureWeight, Long id);
 
-    @Update("UPDATE product SET stock = stock - 1, version = version + 1, updated_at = NOW() WHERE id = ? AND stock > 0 AND is_deleted = 0")
-    int decrementStock(Long id);
+    @Update("UPDATE product SET stock = stock - 1, version = version + 1, updated_at = NOW() WHERE id = ? AND stock > 0 AND version = ? AND is_deleted = 0")
+    int decrementStock(Long id, Integer version);
 
     @Update("UPDATE product SET is_deleted = 1, updated_at = NOW() WHERE id = ?")
     int deleteById(Long id);

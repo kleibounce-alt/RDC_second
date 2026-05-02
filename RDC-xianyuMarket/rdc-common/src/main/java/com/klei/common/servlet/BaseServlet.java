@@ -3,7 +3,6 @@ package com.klei.common.servlet;
 import com.klei.common.annotation.RequirePermission;
 import com.klei.common.annotation.RequireRole;
 import com.klei.common.exception.AuthException;
-import com.klei.common.utils.JwtUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -18,12 +17,10 @@ public abstract class BaseServlet extends HttpServlet {
 
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // 根据 HTTP 方法找子类重写的方法
         String httpMethod = req.getMethod().toUpperCase();
         String methodName = "do" + httpMethod.substring(0, 1) + httpMethod.substring(1).toLowerCase();
         Method targetMethod = findMethod(this.getClass(), methodName);
 
-        // 解析并校验注解
         if (targetMethod != null) {
             checkRole(req, targetMethod);
             checkPermission(req, targetMethod);
@@ -52,8 +49,11 @@ public abstract class BaseServlet extends HttpServlet {
             return;
         }
 
-        String token = JwtUtil.extractToken(req);
-        List<String> roles = JwtUtil.getRoles(token);
+        @SuppressWarnings("unchecked")
+        List<String> roles = (List<String>) req.getAttribute("roles");
+        if (roles == null) {
+            roles = List.of();
+        }
         List<String> required = Arrays.asList(requireRole.value());
 
         boolean has = required.stream().anyMatch(roles::contains);
@@ -71,8 +71,11 @@ public abstract class BaseServlet extends HttpServlet {
             return;
         }
 
-        String token = JwtUtil.extractToken(req);
-        List<String> perms = JwtUtil.getPermissions(token);
+        @SuppressWarnings("unchecked")
+        List<String> perms = (List<String>) req.getAttribute("permissions");
+        if (perms == null) {
+            perms = List.of();
+        }
         List<String> required = Arrays.asList(requirePerm.value());
 
         boolean has = required.stream().anyMatch(perms::contains);

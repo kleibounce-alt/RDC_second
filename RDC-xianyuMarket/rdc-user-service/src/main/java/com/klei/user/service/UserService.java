@@ -19,6 +19,8 @@ import com.klei.user.mapper.UserRoleMapper;
 import com.klei.user.vo.LoginVO;
 import com.klei.user.vo.UserVO;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -106,7 +108,9 @@ public class UserService {
 
         List<String> roles = getRoles(user.getId());
         List<String> permissions = getPermissions(user.getId());
-        String accessToken = JwtUtil.createAccessToken(user.getId(), permissions, roles, user.getVipLevel());
+
+        Date banEndTime = user.getBanEndTime() == null ? null : Timestamp.valueOf(user.getBanEndTime());
+        String accessToken = JwtUtil.createAccessToken(user.getId(), permissions, roles, user.getVipLevel(), banEndTime);
 
         LoginVO vo = new LoginVO();
         vo.setAccessToken(accessToken);
@@ -194,13 +198,13 @@ public class UserService {
 
     private void validateUsername(String username) {
         if (username == null || username.length() < USERNAME_MIN || username.length() > USERNAME_MAX) {
-            throw new BusinessException("用户名长度需在 " + USERNAME_MIN + "-" + USERNAME_MAX + " 位");
+            throw new BusinessException("用户名长度需在" + USERNAME_MIN + "-" + USERNAME_MAX + " 位");
         }
     }
 
     private void validatePassword(String password) {
         if (password == null || password.length() < PASSWORD_MIN || password.length() > PASSWORD_MAX) {
-            throw new BusinessException("密码长度需在 " + PASSWORD_MIN + "-" + PASSWORD_MAX + " 位");
+            throw new BusinessException("密码长度需在" + PASSWORD_MIN + "-" + PASSWORD_MAX + " 位");
         }
     }
 
