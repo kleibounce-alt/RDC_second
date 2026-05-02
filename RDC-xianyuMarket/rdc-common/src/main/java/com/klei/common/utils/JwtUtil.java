@@ -16,18 +16,18 @@ public class JwtUtil {
     private static final String SECRET = "RDC-xianyuMarket-SecretKey-2026";
     private static final Algorithm ALGORITHM = Algorithm.HMAC256(SECRET);
 
-    // AccessToken: 2小时
     private static final long ACCESS_EXPIRE = 2 * 60 * 60 * 1000;
-    // RefreshToken: 7天
     private static final long REFRESH_EXPIRE = 7 * 24 * 60 * 60 * 1000;
 
-    public static String createAccessToken(Long userId, List<String> permissions, List<String> roles) {
+    // 增加 vipLevel
+    public static String createAccessToken(Long userId, List<String> permissions, List<String> roles, Integer vipLevel) {
         Date now = new Date();
         Date expire = new Date(now.getTime() + ACCESS_EXPIRE);
         return JWT.create()
                 .withClaim("userId", userId)
                 .withClaim("perms", String.join(",", permissions))
                 .withClaim("roles", String.join(",", roles))
+                .withClaim("vipLevel", vipLevel == null ? 0 : vipLevel)
                 .withIssuedAt(now)
                 .withExpiresAt(expire)
                 .sign(ALGORITHM);
@@ -36,6 +36,16 @@ public class JwtUtil {
     public static String createRefreshToken(Long userId) {
         Date now = new Date();
         Date expire = new Date(now.getTime() + REFRESH_EXPIRE);
+        return JWT.create()
+                .withClaim("userId", userId)
+                .withIssuedAt(now)
+                .withExpiresAt(expire)
+                .sign(ALGORITHM);
+    }
+
+    public static String createRefreshToken(Long userId, long expireMillis) {
+        Date now = new Date();
+        Date expire = new Date(now.getTime() + expireMillis);
         return JWT.create()
                 .withClaim("userId", userId)
                 .withIssuedAt(now)
@@ -69,6 +79,11 @@ public class JwtUtil {
             return List.of();
         }
         return Arrays.asList(roles.split(","));
+    }
+
+
+    public static Integer getVipLevel(String token) {
+        return verify(token).getClaim("vipLevel").asInt();
     }
 
     public static String extractToken(HttpServletRequest request) {

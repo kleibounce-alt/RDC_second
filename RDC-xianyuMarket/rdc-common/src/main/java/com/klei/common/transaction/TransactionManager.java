@@ -8,7 +8,7 @@ import java.sql.SQLException;
 public class TransactionManager {
 
     private static final ThreadLocal<Connection> HOLDER = new ThreadLocal<>();
-    private static final ThreadLocal<Integer> COUNTER = new ThreadLocal<>(); 
+    private static final ThreadLocal<Integer> COUNTER = new ThreadLocal<>();
 
     public static void begin() throws SQLException {
         Integer count = COUNTER.get();

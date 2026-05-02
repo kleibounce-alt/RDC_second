@@ -12,8 +12,12 @@ public class AppContextListener implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        IoCContainer.scan("com.klei");
-        System.out.println("应用启动，连接池已初始化，IoC已扫描");
+        String scanPackage = sce.getServletContext().getInitParameter("scanPackage");
+        if (scanPackage == null || scanPackage.isEmpty()) {
+            scanPackage = "com.klei";
+        }
+        IoCContainer.scan(scanPackage);
+        System.out.println("应用启动，连接池已初始化，IoC已扫描: " + scanPackage);
     }
 
     @Override

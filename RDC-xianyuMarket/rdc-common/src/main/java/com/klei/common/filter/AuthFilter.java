@@ -122,6 +122,7 @@ public class AuthFilter implements Filter {
                 ? new ArrayList<>()
                 : Arrays.asList(rolesStr.split(",")));
 
+        request.setAttribute("vipLevel", jwt.getClaim("vipLevel").asInt());
         chain.doFilter(req, resp);
     }
 

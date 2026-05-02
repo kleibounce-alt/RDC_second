@@ -45,7 +45,7 @@ public class TransactionalProxy implements InvocationHandler {
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> T wrap(@org.jetbrains.annotations.UnknownNullability Class<?> interfaceClass, Object target) {
+    public static <T> T wrap(Class<?> interfaceClass, Object target) {
         return (T) Proxy.newProxyInstance(
                 interfaceClass.getClassLoader(),
                 new Class<?>[]{interfaceClass},
