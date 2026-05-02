@@ -635,7 +635,7 @@ CREATE TABLE `sensitive_word`(
       <workItem from="1777451305010" duration="13581000" />
       <workItem from="1777485979157" duration="205000" />
       <workItem from="1777552010170" duration="4041000" />
-      <workItem from="1777620286400" duration="4245000" />
+      <workItem from="1777620286400" duration="15841000" />
     </task>
     <servers />
   </component>
@@ -1063,14 +1063,13 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.*;
 
 public class AuthFilter implements Filter {
 
     private final Gson gson = new Gson();
-    // urlPattern -> permissionCode锛屽惎鍔ㄦ椂浠庢暟鎹簱鍔犺浇
     private final Map<String, String> urlPermissionMap = new LinkedHashMap<>();
-    // 鐧藉悕鍗曡矾寰勶紝鏃犻渶鐧诲綍鍗冲彲璁块棶
     private final List<String> whitelist = Arrays.asList(
             "/login", "/register", "/captcha", "/upload",
             "/forgot-password", "/reset-password", "/refresh-token"
@@ -1117,20 +1116,17 @@ public class AuthFilter implements Filter {
         String contextPath = request.getContextPath();
         String path = uri.substring(contextPath.length());
 
-        // 1. 鐧藉悕鍗曠洿鎺ユ斁琛?
         if (isWhitelisted(path)) {
             chain.doFilter(req, resp);
             return;
         }
 
-        // 2. 鎻愬彇 Token
         String token = JwtUtil.extractToken(request);
         if (token == null) {
             writeJson(response, 401, Result.unauthorized());
             return;
         }
 
-        // 3. 楠岃瘉 Token 鏈夋晥鎬?
         DecodedJWT jwt;
         try {
             jwt = JwtUtil.verify(token);
@@ -1144,29 +1140,46 @@ public class AuthFilter implements Filter {
         List<String> userPerms = (permsStr == null || permsStr.isEmpty())
                 ? new ArrayList<>()
                 : Arrays.asList(permsStr.split(","));
+        String rolesStr = jwt.getClaim("roles").asString();
+        List<String> userRoles = (rolesStr == null || rolesStr.isEmpty())
+                ? new ArrayList<>()
+                : Arrays.asList(rolesStr.split(","));
 
-        // 4. 鏌?Redis 榛戝悕鍗曪紙璇ョ敤鎴?AccessToken 琚敞閿€锛?
+        // ===== 灏佺妫€鏌ワ細鏈埌鏈熸嫤鎴紝宸茶繃鏈熻嚜鍔ㄨВ灏?=====
+        Date banEndTimeClaim = jwt.getClaim("banEndTime").asDate();
+        if (banEndTimeClaim != null) {
+            LocalDateTime banEnd = new java.sql.Timestamp(banEndTimeClaim.getTime()).toLocalDateTime();
+            if (LocalDateTime.now().isBefore(banEnd)) {
+                writeJson(response, 403, Result.fail("璐﹀彿灏佺涓紝瑙ｅ皝鏃堕棿锛? + banEnd));
+                return;
+            } else {
+                try (Connection conn = ConnectionPool.getConnection();
+                     PreparedStatement ps = conn.prepareStatement(
+                             "UPDATE sys_user SET status = 'NORMAL', ban_end_time = NULL, updated_at = NOW() WHERE id = ?")) {
+                    ps.setLong(1, userId);
+                    ps.executeUpdate();
+                } catch (SQLException e) {
+                    LogUtil.error("鑷姩瑙ｅ皝鐢ㄦ埛澶辫触 uid=" + userId, e);
+                }
+            }
+        }
+        // =================================================
+
         String blacklistKey = "blacklist:access:" + userId;
         if (RedisUtil.exists(blacklistKey)) {
             writeJson(response, 401, Result.unauthorized());
             return;
         }
 
-        // 5. URL 绮楃矑搴︽潈闄愭嫤鎴?
         String requiredPerm = matchPermission(path);
         if (requiredPerm != null && !userPerms.contains(requiredPerm)) {
             writeJson(response, 403, Result.forbidden());
             return;
         }
 
-        // 6. 鎶?userId銆佹潈闄愩€佽鑹插垪琛ㄦ寕鍒?request锛屽悗缁?Servlet/Service 鐩存帴鍙?
         request.setAttribute("userId", userId);
         request.setAttribute("permissions", userPerms);
-        String rolesStr = jwt.getClaim("roles").asString();
-        request.setAttribute("roles", (rolesStr == null || rolesStr.isEmpty())
-                ? new ArrayList<>()
-                : Arrays.asList(rolesStr.split(",")));
-
+        request.setAttribute("roles", userRoles);
         request.setAttribute("vipLevel", jwt.getClaim("vipLevel").asInt());
         chain.doFilter(req, resp);
     }
@@ -1184,7 +1197,6 @@ public class AuthFilter implements Filter {
         for (Map.Entry<String, String> entry : urlPermissionMap.entrySet()) {
             String pattern = entry.getKey();
             if (pattern.endsWith("/*")) {
-                // 淇锛?admin/* 鍖归厤 /admin/xxx锛屼笉鍖归厤 /admin123
                 String prefix = pattern.substring(0, pattern.length() - 1);
                 if (path.startsWith(prefix)) {
                     return entry.getValue();
@@ -1856,7 +1868,6 @@ package com.klei.common.servlet;
 import com.klei.common.annotation.RequirePermission;
 import com.klei.common.annotation.RequireRole;
 import com.klei.common.exception.AuthException;
-import com.klei.common.utils.JwtUtil;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -1871,12 +1882,10 @@ public abstract class BaseServlet extends HttpServlet {
 
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // 鏍规嵁 HTTP 鏂规硶鎵惧瓙绫婚噸鍐欑殑鏂规硶
         String httpMethod = req.getMethod().toUpperCase();
         String methodName = "do" + httpMethod.substring(0, 1) + httpMethod.substring(1).toLowerCase();
         Method targetMethod = findMethod(this.getClass(), methodName);
 
-        // 瑙ｆ瀽骞舵牎楠屾敞瑙?
         if (targetMethod != null) {
             checkRole(req, targetMethod);
             checkPermission(req, targetMethod);
@@ -1905,8 +1914,11 @@ public abstract class BaseServlet extends HttpServlet {
             return;
         }
 
-        String token = JwtUtil.extractToken(req);
-        List<String> roles = JwtUtil.getRoles(token);
+        @SuppressWarnings("unchecked")
+        List<String> roles = (List<String>) req.getAttribute("roles");
+        if (roles == null) {
+            roles = List.of();
+        }
         List<String> required = Arrays.asList(requireRole.value());
 
         boolean has = required.stream().anyMatch(roles::contains);
@@ -1924,8 +1936,11 @@ public abstract class BaseServlet extends HttpServlet {
             return;
         }
 
-        String token = JwtUtil.extractToken(req);
-        List<String> perms = JwtUtil.getPermissions(token);
+        @SuppressWarnings("unchecked")
+        List<String> perms = (List<String>) req.getAttribute("permissions");
+        if (perms == null) {
+            perms = List.of();
+        }
         List<String> required = Arrays.asList(requirePerm.value());
 
         boolean has = required.stream().anyMatch(perms::contains);
@@ -2230,18 +2245,20 @@ public class JwtUtil {
     private static final long ACCESS_EXPIRE = 2 * 60 * 60 * 1000;
     private static final long REFRESH_EXPIRE = 7 * 24 * 60 * 60 * 1000;
 
-    // 澧炲姞 vipLevel
-    public static String createAccessToken(Long userId, List<String> permissions, List<String> roles, Integer vipLevel) {
+    public static String createAccessToken(Long userId, List<String> permissions, List<String> roles, Integer vipLevel, Date banEndTime) {
         Date now = new Date();
         Date expire = new Date(now.getTime() + ACCESS_EXPIRE);
-        return JWT.create()
+        var builder = JWT.create()
                 .withClaim("userId", userId)
                 .withClaim("perms", String.join(",", permissions))
                 .withClaim("roles", String.join(",", roles))
                 .withClaim("vipLevel", vipLevel == null ? 0 : vipLevel)
                 .withIssuedAt(now)
-                .withExpiresAt(expire)
-                .sign(ALGORITHM);
+                .withExpiresAt(expire);
+        if (banEndTime != null) {
+            builder.withClaim("banEndTime", banEndTime);
+        }
+        return builder.sign(ALGORITHM);
     }
 
     public static String createRefreshToken(Long userId) {
@@ -2291,7 +2308,6 @@ public class JwtUtil {
         }
         return Arrays.asList(roles.split(","));
     }
-
 
     public static Integer getVipLevel(String token) {
         return verify(token).getClaim("vipLevel").asInt();
@@ -3718,8 +3734,8 @@ public interface ProductMapper {
     @Update("UPDATE product SET exposure_weight = ?, updated_at = NOW() WHERE id = ? AND is_deleted = 0")
     int updateExposureWeight(Integer exposureWeight, Long id);
 
-    @Update("UPDATE product SET stock = stock - 1, version = version + 1, updated_at = NOW() WHERE id = ? AND stock > 0 AND is_deleted = 0")
-    int decrementStock(Long id);
+    @Update("UPDATE product SET stock = stock - 1, version = version + 1, updated_at = NOW() WHERE id = ? AND stock > 0 AND version = ? AND is_deleted = 0")
+    int decrementStock(Long id, Integer version);
 
     @Update("UPDATE product SET is_deleted = 1, updated_at = NOW() WHERE id = ?")
     int deleteById(Long id);
@@ -4243,6 +4259,8 @@ import com.klei.user.mapper.UserRoleMapper;
 import com.klei.user.vo.LoginVO;
 import com.klei.user.vo.UserVO;
 
+import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -4330,7 +4348,9 @@ public class UserService {
 
         List<String> roles = getRoles(user.getId());
         List<String> permissions = getPermissions(user.getId());
-        String accessToken = JwtUtil.createAccessToken(user.getId(), permissions, roles, user.getVipLevel());
+
+        Date banEndTime = user.getBanEndTime() == null ? null : Timestamp.valueOf(user.getBanEndTime());
+        String accessToken = JwtUtil.createAccessToken(user.getId(), permissions, roles, user.getVipLevel(), banEndTime);
 
         LoginVO vo = new LoginVO();
         vo.setAccessToken(accessToken);
@@ -4418,13 +4438,13 @@ public class UserService {
 
     private void validateUsername(String username) {
         if (username == null || username.length() < USERNAME_MIN || username.length() > USERNAME_MAX) {
-            throw new BusinessException("鐢ㄦ埛鍚嶉暱搴﹂渶鍦?" + USERNAME_MIN + "-" + USERNAME_MAX + " 浣?);
+            throw new BusinessException("鐢ㄦ埛鍚嶉暱搴﹂渶鍦? + USERNAME_MIN + "-" + USERNAME_MAX + " 浣?);
         }
     }
 
     private void validatePassword(String password) {
         if (password == null || password.length() < PASSWORD_MIN || password.length() > PASSWORD_MAX) {
-            throw new BusinessException("瀵嗙爜闀垮害闇€鍦?" + PASSWORD_MIN + "-" + PASSWORD_MAX + " 浣?);
+            throw new BusinessException("瀵嗙爜闀垮害闇€鍦? + PASSWORD_MIN + "-" + PASSWORD_MAX + " 浣?);
         }
     }
 

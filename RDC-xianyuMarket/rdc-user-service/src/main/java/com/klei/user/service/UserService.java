@@ -3,6 +3,7 @@ package com.klei.user.service;
 import com.klei.common.annotation.Autowired;
 import com.klei.common.annotation.Component;
 import com.klei.common.annotation.Transactional;
+import com.klei.common.exception.AuthException;
 import com.klei.common.exception.BusinessException;
 import com.klei.common.utils.JwtUtil;
 import com.klei.common.utils.MailUtil;
@@ -127,6 +128,32 @@ public class UserService {
         return vo;
     }
 
+    public LoginVO refreshToken(String refreshToken) {
+        var jwt = JwtUtil.verify(refreshToken);
+        Long userId = jwt.getClaim("userId").asLong();
+
+        String stored = RedisUtil.get("refresh:" + userId);
+        if (stored == null || !stored.equals(refreshToken)) {
+            throw new AuthException(401, "登录已过期，请重新登录");
+        }
+
+        User user = userMapper.findById(userId);
+        if (user == null) {
+            throw new BusinessException("用户不存在");
+        }
+
+        List<String> roles = getRoles(userId);
+        List<String> permissions = getPermissions(userId);
+        Date banEndTime = user.getBanEndTime() == null ? null : Timestamp.valueOf(user.getBanEndTime());
+        String newAccessToken = JwtUtil.createAccessToken(userId, permissions, roles, user.getVipLevel(), banEndTime);
+
+        LoginVO vo = new LoginVO();
+        vo.setAccessToken(newAccessToken);
+        vo.setRefreshToken(refreshToken);
+        vo.setUser(toUserVO(user, roles));
+        return vo;
+    }
+
     public void logout(Long userId, String accessToken) {
         try {
             var jwt = JwtUtil.verify(accessToken);
@@ -198,13 +225,13 @@ public class UserService {
 
     private void validateUsername(String username) {
         if (username == null || username.length() < USERNAME_MIN || username.length() > USERNAME_MAX) {
-            throw new BusinessException("用户名长度需在" + USERNAME_MIN + "-" + USERNAME_MAX + " 位");
+            throw new BusinessException("用户名长度需在 " + USERNAME_MIN + "-" + USERNAME_MAX + " 位");
         }
     }
 
     private void validatePassword(String password) {
         if (password == null || password.length() < PASSWORD_MIN || password.length() > PASSWORD_MAX) {
-            throw new BusinessException("密码长度需在" + PASSWORD_MIN + "-" + PASSWORD_MAX + " 位");
+            throw new BusinessException("密码长度需在 " + PASSWORD_MIN + "-" + PASSWORD_MAX + " 位");
         }
     }
 
