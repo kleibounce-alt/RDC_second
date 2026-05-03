@@ -58,7 +58,8 @@ public class ResultSetMapper {
         if (value == null) {
             return null;
         }
-        if (targetType.isAssignableFrom(value.getClass())) {
+        // 修复：原代码 isAssignableFrom 方向写反，改为 isInstance
+        if (targetType.isInstance(value)) {
             return value;
         }
 
@@ -110,7 +111,7 @@ public class ResultSetMapper {
                     Object enumValue = Enum.valueOf((Class<Enum>) targetType, enumStr);
                     return enumValue;
                 } catch (IllegalArgumentException e) {
-                    throw new RuntimeException("枚举映射失败: " + targetType.getSimpleName() + " 不存在值 '" + enumStr + "'", e);
+                    throw new RuntimeException("枚举映射失败: " + targetType.getSimpleName() + " 不存在值'" + enumStr + "'", e);
                 }
             }
         }

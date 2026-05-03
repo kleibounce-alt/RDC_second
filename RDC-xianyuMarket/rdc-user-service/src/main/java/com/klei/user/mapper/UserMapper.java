@@ -40,4 +40,7 @@ public interface UserMapper {
 
     @Update("UPDATE sys_user SET email = ?, updated_at = NOW() WHERE id = ? AND is_deleted = 0")
     int updateEmail(String email, Long id);
+
+    @Select("SELECT * FROM sys_user WHERE (username LIKE ? OR nickname LIKE ?) AND is_deleted = 0 ORDER BY created_at DESC")
+    List<User> search(String pattern, String pattern2);
 }

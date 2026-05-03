@@ -20,4 +20,7 @@ public interface SensitiveWordMapper {
 
     @Update("UPDATE sensitive_word SET is_deleted = 1 WHERE id = ?")
     int deleteById(Long id);
+
+    @Update("UPDATE sensitive_word SET is_deleted = 0 WHERE id = ?")
+    int restoreById(Long id);
 }

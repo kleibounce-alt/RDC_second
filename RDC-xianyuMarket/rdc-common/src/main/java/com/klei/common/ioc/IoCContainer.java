@@ -43,7 +43,7 @@ public class IoCContainer {
             scanDirectory(dir, basePackage);
             doInjection();
 
-            LogUtil.info("IoC容器初始化完成，共注册" + beanMap.size() + " 个Bean");
+            LogUtil.info("IoC容器初始化完成，共注册 " + beanMap.size() + " 个Bean");
         } catch (Exception e) {
             LogUtil.error("IoC容器启动失败", e);
             throw new RuntimeException("IoC容器启动失败", e);
@@ -89,7 +89,7 @@ public class IoCContainer {
                     beanMap.put(iface, bean);
                     LogUtil.info("IoC注册事务代理: " + iface.getName());
                 } else {
-                    LogUtil.warn("类 " + clazz.getName() + " 有@Transactional但无接口，无法创建JDK代理");
+                    LogUtil.warn("类" + clazz.getName() + " 有@Transactional但无接口，无法创建JDK代理");
                 }
             }
 
@@ -130,14 +130,18 @@ public class IoCContainer {
 
                 Object dependency = findBean(fieldType);
 
-                // 接口类型找不到Bean时，自动创建Mapper代理
                 if (dependency == null && fieldType.isInterface()) {
-                    try {
-                        dependency = MapperProxyFactory.getMapper(fieldType);
-                        beanMap.put(fieldType, dependency);
-                        LogUtil.info("IoC自动注册Mapper: " + fieldType.getName());
-                    } catch (Exception e) {
-                        LogUtil.warn("IoC注入跳过，无法创建Mapper代理: " + fieldType.getName());
+                    if (fieldType.getSimpleName().endsWith("Mapper")) {
+                        try {
+                            dependency = MapperProxyFactory.getMapper(fieldType);
+                            beanMap.put(fieldType, dependency);
+                            LogUtil.info("IoC自动注册Mapper: " + fieldType.getName());
+                        } catch (Exception e) {
+                            LogUtil.warn("IoC注入跳过，无法创建Mapper代理: " + fieldType.getName());
+                            continue;
+                        }
+                    } else {
+                        LogUtil.warn("IoC注入跳过，接口实现类未找到: " + fieldType.getName());
                         continue;
                     }
                 }

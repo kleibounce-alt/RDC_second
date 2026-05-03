@@ -100,7 +100,7 @@ public class AuthFilter implements Filter {
                 ? new ArrayList<>()
                 : Arrays.asList(rolesStr.split(","));
 
-        // ===== 封禁检查：未到期拦截，已过期自动解封 =====
+        // 封禁检查：未到期拦截，已过期自动解封
         Date banEndTimeClaim = jwt.getClaim("banEndTime").asDate();
         if (banEndTimeClaim != null) {
             LocalDateTime banEnd = new java.sql.Timestamp(banEndTimeClaim.getTime()).toLocalDateTime();
@@ -118,7 +118,6 @@ public class AuthFilter implements Filter {
                 }
             }
         }
-        // =================================================
 
         String blacklistKey = "blacklist:access:" + userId;
         if (RedisUtil.exists(blacklistKey)) {

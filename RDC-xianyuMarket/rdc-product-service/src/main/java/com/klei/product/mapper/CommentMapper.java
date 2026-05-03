@@ -20,4 +20,13 @@ public interface CommentMapper {
 
     @Update("UPDATE comment SET is_deleted = 1 WHERE id = ?")
     int deleteById(Long id);
+
+    @Update("UPDATE comment SET like_count = like_count - 1 WHERE id = ? AND is_deleted = 0 AND like_count > 0")
+    int decrementLikeCount(Long id);
+
+    @Select("SELECT * FROM comment WHERE parent_id = ? AND is_deleted = 0 ORDER BY created_at ASC")
+    List<Comment> findByParentId(Long parentId);
+
+    @Insert("INSERT INTO comment (product_id, parent_id, user_id, content, like_count, is_deleted, created_at) VALUES (?, ?, ?, ?, 0, 0, NOW())")
+    long insert(Long productId, Long parentId, Long userId, String content);
 }

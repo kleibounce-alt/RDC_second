@@ -29,6 +29,11 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
+                <groupId>com.rabbitmq</groupId>
+                <artifactId>amqp-client</artifactId>
+                <version>5.18.0</version>
+            </dependency>
+            <dependency>
                 <groupId>com.klei</groupId>
                 <artifactId>rdc-common</artifactId>
                 <version>${project.version}</version>
@@ -74,7 +79,6 @@
                 <artifactId>javax.mail</artifactId>
                 <version>1.6.2</version>
             </dependency>
-
             <dependency>
                 <groupId>javax.websocket</groupId>
                 <artifactId>javax.websocket-api</artifactId>
@@ -99,6 +103,7 @@
                     <version>3.4.0</version>
                     <configuration>
                         <failOnMissingWebXml>false</failOnMissingWebXml>
+                        <attachClasses>true</attachClasses>
                     </configuration>
                 </plugin>
             </plugins>
@@ -231,6 +236,7 @@ CREATE TABLE `follow` (
 CREATE TABLE `comment` (
                            `id` BIGINT NOT NULL AUTO_INCREMENT,
                            `product_id` BIGINT NOT NULL,
+                           `parent_id` BIGINT DEFAULT NULL,
                            `user_id` BIGINT NOT NULL,
                            `content` TEXT NOT NULL,
                            `like_count` INT DEFAULT '0',
@@ -340,318 +346,6 @@ CREATE TABLE `sensitive_word`(
                             UNIQUE (`word`)
 );
 
-===== FILE: .idea\compiler.xml =====
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="CompilerConfiguration">
-    <annotationProcessing>
-      <profile name="Maven default annotation processors profile" enabled="true">
-        <sourceOutputDir name="target/generated-sources/annotations" />
-        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
-        <outputRelativeToContentRoot value="true" />
-        <module name="rdc-message-service" />
-        <module name="rdc-order-service" />
-        <module name="rdc-admin-service" />
-        <module name="rdc-common" />
-        <module name="rdc-product-service" />
-        <module name="rdc-user-service" />
-      </profile>
-    </annotationProcessing>
-  </component>
-</project>
-
-===== FILE: .idea\encodings.xml =====
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="Encoding">
-    <file url="file://$PROJECT_DIR$/rdc-admin-service/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/rdc-admin-service/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/rdc-common/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/rdc-common/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/rdc-message-service/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/rdc-message-service/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/rdc-order-service/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/rdc-order-service/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/rdc-product-service/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/rdc-product-service/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/rdc-user-service/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/rdc-user-service/src/main/resources" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/src/main/java" charset="UTF-8" />
-    <file url="file://$PROJECT_DIR$/src/main/resources" charset="UTF-8" />
-  </component>
-</project>
-
-===== FILE: .idea\jarRepositories.xml =====
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="RemoteRepositoriesConfiguration">
-    <remote-repository>
-      <option name="id" value="central" />
-      <option name="name" value="Central Repository" />
-      <option name="url" value="https://repo.maven.apache.org/maven2" />
-    </remote-repository>
-    <remote-repository>
-      <option name="id" value="central" />
-      <option name="name" value="Maven Central repository" />
-      <option name="url" value="https://repo1.maven.org/maven2" />
-    </remote-repository>
-    <remote-repository>
-      <option name="id" value="jboss.community" />
-      <option name="name" value="JBoss Community repository" />
-      <option name="url" value="https://repository.jboss.org/nexus/content/repositories/public/" />
-    </remote-repository>
-  </component>
-</project>
-
-===== FILE: .idea\misc.xml =====
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="ExternalStorageConfigurationManager" enabled="true" />
-  <component name="MavenProjectsManager">
-    <option name="originalFiles">
-      <list>
-        <option value="$PROJECT_DIR$/pom.xml" />
-      </list>
-    </option>
-  </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_21" default="true" project-jdk-name="ms-21" project-jdk-type="JavaSDK">
-    <output url="file://$PROJECT_DIR$/out" />
-  </component>
-</project>
-
-===== FILE: .idea\vcs.xml =====
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="VcsDirectoryMappings">
-    <mapping directory="" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/.." vcs="Git" />
-    <mapping directory="$PROJECT_DIR$" vcs="Git" />
-  </component>
-</project>
-
-===== FILE: .idea\workspace.xml =====
-<?xml version="1.0" encoding="UTF-8"?>
-<project version="4">
-  <component name="ArtifactsWorkspaceSettings">
-    <artifacts-to-build>
-      <artifact name="RDC-xianyuMarket:war exploded" />
-    </artifacts-to-build>
-  </component>
-  <component name="AutoImportSettings">
-    <option name="autoReloadType" value="SELECTIVE" />
-  </component>
-  <component name="ChangeListManager">
-    <list default="true" id="197c3ace-c889-45b9-b3b3-fa059a0ea4fa" name="鏇存敼" comment="" />
-    <option name="SHOW_DIALOG" value="false" />
-    <option name="HIGHLIGHT_CONFLICTS" value="true" />
-    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
-    <option name="LAST_RESOLUTION" value="IGNORE" />
-  </component>
-  <component name="FileTemplateManagerImpl">
-    <option name="RECENT_TEMPLATES">
-      <list>
-        <option value="package-info" />
-        <option value="Class" />
-      </list>
-    </option>
-  </component>
-  <component name="Git.Settings">
-    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
-  </component>
-  <component name="GitHubPullRequestSearchHistory">{
-  &quot;lastFilter&quot;: {
-    &quot;state&quot;: &quot;OPEN&quot;,
-    &quot;assignee&quot;: &quot;kleibounce-alt&quot;
-  }
-}</component>
-  <component name="GithubPullRequestsUISettings">{
-  &quot;selectedUrlAndAccountId&quot;: {
-    &quot;url&quot;: &quot;https://github.com/kleibounce-alt/RDC_second.git&quot;,
-    &quot;accountId&quot;: &quot;e6eebed9-374e-4084-a8a2-a3ec2e0ec0de&quot;
-  }
-}</component>
-  <component name="LogFilters">
-    <option name="FILTER_ERRORS" value="false" />
-    <option name="FILTER_WARNINGS" value="false" />
-    <option name="FILTER_INFO" value="true" />
-    <option name="FILTER_DEBUG" value="true" />
-    <option name="CUSTOM_FILTER" />
-  </component>
-  <component name="ProjectColorInfo">{
-  &quot;associatedIndex&quot;: 2
-}</component>
-  <component name="ProjectId" id="3CtuDZnyDCTkOTabIn0prBz1LbH" />
-  <component name="ProjectViewState">
-    <option name="hideEmptyMiddlePackages" value="true" />
-    <option name="showLibraryContents" value="true" />
-  </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
-    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
-    &quot;Tomcat 鏈嶅姟鍣?Tomcat 9.0.116.executor&quot;: &quot;Run&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;dev&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;妯″潡&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;,
-    &quot;搴旂敤绋嬪簭.ConnectionPool.executor&quot;: &quot;Run&quot;,
-    &quot;搴旂敤绋嬪簭.LogUtil.executor&quot;: &quot;Run&quot;,
-    &quot;搴旂敤绋嬪簭.PoolTest.executor&quot;: &quot;Run&quot;
-  }
-}</component>
-  <component name="RecentsManager">
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="C:\Users\klei\Desktop\RDC_second\RDC-xianyuMarket\rdc-admin-service\src\main" />
-      <recent name="C:\Users\klei\Desktop\RDC_second\RDC-xianyuMarket\rdc-common\src\main\java" />
-    </key>
-  </component>
-  <component name="RunDashboard">
-    <option name="configurationStatuses">
-      <map>
-        <entry key="#com.intellij.j2ee.web.tomcat.TomcatRunConfigurationFactory">
-          <value>
-            <map>
-              <entry key="Tomcat 9.0.116" value="STOPPED" />
-            </map>
-          </value>
-        </entry>
-      </map>
-    </option>
-  </component>
-  <component name="RunManager">
-    <configuration name="Tomcat 9.0.116" type="#com.intellij.j2ee.web.tomcat.TomcatRunConfigurationFactory" factoryName="Local" APPLICATION_SERVER_NAME="Tomcat 9.0.116" ALTERNATIVE_JRE_ENABLED="false" nameIsGenerated="true">
-      <option name="UPDATING_POLICY" value="restart-server" />
-      <deployment>
-        <artifact name="RDC-xianyuMarket:war exploded">
-          <settings>
-            <option name="CONTEXT_PATH" value="/" />
-          </settings>
-        </artifact>
-      </deployment>
-      <server-settings>
-        <option name="BASE_DIRECTORY_NAME" value="5ad873f7-15a1-486c-b5bf-6f67e585383d" />
-      </server-settings>
-      <predefined_log_file enabled="true" id="Tomcat" />
-      <predefined_log_file enabled="true" id="Tomcat Catalina" />
-      <predefined_log_file id="Tomcat Manager" />
-      <predefined_log_file id="Tomcat Host Manager" />
-      <predefined_log_file id="Tomcat Localhost Access" />
-      <RunnerSettings RunnerId="Debug">
-        <option name="DEBUG_PORT" value="9009" />
-      </RunnerSettings>
-      <ConfigurationWrapper VM_VAR="JAVA_OPTS" RunnerId="Cover">
-        <option name="USE_ENV_VARIABLES" value="true" />
-        <STARTUP>
-          <option name="USE_DEFAULT" value="true" />
-          <option name="SCRIPT" value="" />
-          <option name="VM_PARAMETERS" value="" />
-          <option name="PROGRAM_PARAMETERS" value="" />
-        </STARTUP>
-        <SHUTDOWN>
-          <option name="USE_DEFAULT" value="true" />
-          <option name="SCRIPT" value="" />
-          <option name="VM_PARAMETERS" value="" />
-          <option name="PROGRAM_PARAMETERS" value="" />
-        </SHUTDOWN>
-      </ConfigurationWrapper>
-      <ConfigurationWrapper VM_VAR="JAVA_OPTS" RunnerId="Debug">
-        <option name="USE_ENV_VARIABLES" value="true" />
-        <STARTUP>
-          <option name="USE_DEFAULT" value="true" />
-          <option name="SCRIPT" value="" />
-          <option name="VM_PARAMETERS" value="" />
-          <option name="PROGRAM_PARAMETERS" value="" />
-        </STARTUP>
-        <SHUTDOWN>
-          <option name="USE_DEFAULT" value="true" />
-          <option name="SCRIPT" value="" />
-          <option name="VM_PARAMETERS" value="" />
-          <option name="PROGRAM_PARAMETERS" value="" />
-        </SHUTDOWN>
-      </ConfigurationWrapper>
-      <ConfigurationWrapper VM_VAR="JAVA_OPTS" RunnerId="Profile">
-        <option name="USE_ENV_VARIABLES" value="true" />
-        <STARTUP>
-          <option name="USE_DEFAULT" value="true" />
-          <option name="SCRIPT" value="" />
-          <option name="VM_PARAMETERS" value="" />
-          <option name="PROGRAM_PARAMETERS" value="" />
-        </STARTUP>
-        <SHUTDOWN>
-          <option name="USE_DEFAULT" value="true" />
-          <option name="SCRIPT" value="" />
-          <option name="VM_PARAMETERS" value="" />
-          <option name="PROGRAM_PARAMETERS" value="" />
-        </SHUTDOWN>
-      </ConfigurationWrapper>
-      <ConfigurationWrapper VM_VAR="JAVA_OPTS" RunnerId="Run">
-        <option name="USE_ENV_VARIABLES" value="true" />
-        <STARTUP>
-          <option name="USE_DEFAULT" value="true" />
-          <option name="SCRIPT" value="" />
-          <option name="VM_PARAMETERS" value="" />
-          <option name="PROGRAM_PARAMETERS" value="" />
-        </STARTUP>
-        <SHUTDOWN>
-          <option name="USE_DEFAULT" value="true" />
-          <option name="SCRIPT" value="" />
-          <option name="VM_PARAMETERS" value="" />
-          <option name="PROGRAM_PARAMETERS" value="" />
-        </SHUTDOWN>
-      </ConfigurationWrapper>
-      <method v="2">
-        <option name="Make" enabled="true" />
-        <option name="BuildArtifacts" enabled="true">
-          <artifact name="RDC-xianyuMarket:war exploded" />
-        </option>
-      </method>
-    </configuration>
-  </component>
-  <component name="SharedIndexes">
-    <attachedChunks>
-      <set>
-        <option value="bundled-jdk-30f59d01ecdd-2fc7cc6b9a17-intellij.indexing.shared.core-IU-253.30387.90" />
-        <option value="bundled-js-predefined-d6986cc7102b-9b0f141eb926-JavaScript-IU-253.30387.90" />
-      </set>
-    </attachedChunks>
-  </component>
-  <component name="TaskManager">
-    <task active="true" id="Default" summary="榛樿浠诲姟">
-      <changelist id="197c3ace-c889-45b9-b3b3-fa059a0ea4fa" name="鏇存敼" comment="" />
-      <created>1777217068788</created>
-      <option name="number" value="Default" />
-      <option name="presentableId" value="Default" />
-      <updated>1777217068788</updated>
-      <workItem from="1777217072919" duration="4012000" />
-      <workItem from="1777272374262" duration="14549000" />
-      <workItem from="1777388439311" duration="5144000" />
-      <workItem from="1777432454138" duration="3077000" />
-      <workItem from="1777451305010" duration="13581000" />
-      <workItem from="1777485979157" duration="205000" />
-      <workItem from="1777552010170" duration="4041000" />
-      <workItem from="1777620286400" duration="15841000" />
-    </task>
-    <servers />
-  </component>
-  <component name="TypeScriptGeneratedFilesManager">
-    <option name="version" value="3" />
-  </component>
-</project>
-
-===== FILE: .idea\inspectionProfiles\Project_Default.xml =====
-<component name="InspectionProjectProfileManager">
-  <profile version="1.0">
-    <option name="myName" value="Project Default" />
-    <inspection_tool class="SqlNoDataSourceInspection" enabled="false" level="WARNING" enabled_by_default="false" />
-  </profile>
-</component>
-
 ===== FILE: rdc-admin-service\pom.xml =====
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -682,6 +376,24 @@ CREATE TABLE `sensitive_word`(
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.klei</groupId>
+            <artifactId>rdc-product-service</artifactId>
+            <version>${project.version}</version>
+            <classifier>classes</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.klei</groupId>
+            <artifactId>rdc-message-service</artifactId>
+            <version>${project.version}</version>
+            <classifier>classes</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.klei</groupId>
+            <artifactId>rdc-user-service</artifactId>
+            <version>${project.version}</version>
+            <classifier>classes</classifier>
         </dependency>
     </dependencies>
 
@@ -747,6 +459,471 @@ public interface AuditLogMapper {
     int deleteById(Long id);
 }
 
+===== FILE: rdc-admin-service\src\main\java\com\klei\admin\service\AdminProductService.java =====
+package com.klei.admin.service;
+
+public interface AdminProductService {
+
+    void increaseExposure(Long productId, Integer weight);
+
+    void deleteProduct(Long productId);
+}
+
+===== FILE: rdc-admin-service\src\main\java\com\klei\admin\service\AdminUserService.java =====
+package com.klei.admin.service;
+
+import java.time.LocalDateTime;
+
+public interface AdminUserService {
+
+    void banUser(Long userId, LocalDateTime banEndTime);
+
+    void unbanUser(Long userId);
+
+    void forceOffShelf(Long productId);
+
+    void deleteComment(Long commentId);
+}
+
+===== FILE: rdc-admin-service\src\main\java\com\klei\admin\service\AuditService.java =====
+package com.klei.admin.service;
+
+import com.klei.admin.entity.AuditLog;
+import com.klei.product.entity.Product;
+import java.util.List;
+
+public interface AuditService {
+    List<Product> findPendingProducts();
+    void approve(Long productId, Long adminId);
+    void reject(Long productId, Long adminId, String reason);
+    List<AuditLog> findLogsByProductId(Long productId);
+}
+
+===== FILE: rdc-admin-service\src\main\java\com\klei\admin\service\SensitiveWordService.java =====
+package com.klei.admin.service;
+
+public interface SensitiveWordService {
+
+    void addWord(String word);
+
+    void deleteWord(Long id);
+}
+
+===== FILE: rdc-admin-service\src\main\java\com\klei\admin\service\impl\AdminProductServiceImpl.java =====
+package com.klei.admin.service.impl;
+
+import com.klei.admin.service.AdminProductService;
+import com.klei.common.annotation.Autowired;
+import com.klei.common.annotation.Component;
+import com.klei.common.annotation.Transactional;
+import com.klei.common.exception.BusinessException;
+import com.klei.product.entity.Product;
+import com.klei.product.mapper.ProductMapper;
+
+@Component
+public class AdminProductServiceImpl implements AdminProductService {
+
+    @Autowired
+    private ProductMapper productMapper;
+
+    @Override
+    @Transactional
+    public void increaseExposure(Long productId, Integer weight) {
+        if (weight == null || weight < 0) {
+            throw new BusinessException("鏇濆厜鏉冮噸涓嶈兘涓鸿礋鏁?);
+        }
+        Product product = productMapper.findById(productId);
+        if (product == null || product.getIsDeleted() == 1) {
+            throw new BusinessException("鍟嗗搧涓嶅瓨鍦?);
+        }
+        productMapper.updateExposureWeight(weight, productId);
+    }
+
+    @Override
+    @Transactional
+    public void deleteProduct(Long productId) {
+        Product product = productMapper.findById(productId);
+        if (product == null || product.getIsDeleted() == 1) {
+            throw new BusinessException("鍟嗗搧涓嶅瓨鍦?);
+        }
+        productMapper.deleteById(productId);
+    }
+}
+
+===== FILE: rdc-admin-service\src\main\java\com\klei\admin\service\impl\AdminUserServiceImpl.java =====
+package com.klei.admin.service.impl;
+
+import com.klei.admin.service.AdminUserService;
+import com.klei.common.annotation.Autowired;
+import com.klei.common.annotation.Component;
+import com.klei.common.annotation.Transactional;
+import com.klei.common.exception.BusinessException;
+import com.klei.common.utils.RedisUtil;
+import com.klei.product.entity.Comment;
+import com.klei.product.entity.Product;
+import com.klei.product.entity.enums.ProductStatus;
+import com.klei.product.mapper.CommentMapper;
+import com.klei.product.mapper.ProductMapper;
+import com.klei.user.entity.User;
+import com.klei.user.entity.enums.UserStatus;
+import com.klei.user.mapper.UserMapper;
+
+import java.time.LocalDateTime;
+
+@Component
+public class AdminUserServiceImpl implements AdminUserService {
+
+    @Autowired
+    private UserMapper userMapper;
+    @Autowired
+    private ProductMapper productMapper;
+    @Autowired
+    private CommentMapper commentMapper;
+
+    @Override
+    @Transactional
+    public void banUser(Long userId, LocalDateTime banEndTime) {
+        if (banEndTime == null || banEndTime.isBefore(LocalDateTime.now())) {
+            throw new BusinessException("灏佺鏃堕棿蹇呴』澶т簬褰撳墠鏃堕棿");
+        }
+        User user = userMapper.findById(userId);
+        if (user == null || user.getIsDeleted() == 1) {
+            throw new BusinessException("鐢ㄦ埛涓嶅瓨鍦?);
+        }
+        userMapper.updateBanEndTime(banEndTime, userId);
+        userMapper.updateStatus(UserStatus.BANNED, userId);
+    }
+
+    @Override
+    @Transactional
+    public void unbanUser(Long userId) {
+        User user = userMapper.findById(userId);
+        if (user == null || user.getIsDeleted() == 1) {
+            throw new BusinessException("鐢ㄦ埛涓嶅瓨鍦?);
+        }
+        userMapper.updateBanEndTime(null, userId);
+        userMapper.updateStatus(UserStatus.NORMAL, userId);
+    }
+
+    @Override
+    @Transactional
+    public void forceOffShelf(Long productId) {
+        Product product = productMapper.findById(productId);
+        if (product == null || product.getIsDeleted() == 1) {
+            throw new BusinessException("鍟嗗搧涓嶅瓨鍦?);
+        }
+        productMapper.updateStatus(ProductStatus.REJECTED, "绠＄悊鍛樺己鍒朵笅鏋?, productId);
+        RedisUtil.del("product:detail:" + productId);
+    }
+
+    @Override
+    @Transactional
+    public void deleteComment(Long commentId) {
+        Comment comment = commentMapper.findById(commentId);
+        if (comment == null || comment.getIsDeleted() == 1) {
+            throw new BusinessException("璇勮涓嶅瓨鍦?);
+        }
+        commentMapper.deleteById(commentId);
+    }
+}
+
+===== FILE: rdc-admin-service\src\main\java\com\klei\admin\service\impl\AuditServiceImpl.java =====
+package com.klei.admin.service.impl;
+
+import com.klei.admin.service.AuditService;
+import com.klei.common.annotation.Autowired;
+import com.klei.common.annotation.Component;
+import com.klei.common.annotation.Transactional;
+import com.klei.common.exception.BusinessException;
+import com.klei.common.mq.MqSender;
+import com.klei.common.utils.RedisUtil;
+import com.klei.admin.entity.AuditLog;
+import com.klei.admin.entity.enums.AuditAction;
+import com.klei.admin.mapper.AuditLogMapper;
+import com.klei.product.entity.Product;
+import com.klei.product.entity.enums.ProductStatus;
+import com.klei.product.mapper.ProductMapper;
+
+import java.util.List;
+
+@Component
+public class AuditServiceImpl implements AuditService {
+
+    @Autowired
+    private AuditLogMapper auditLogMapper;
+    @Autowired
+    private ProductMapper productMapper;
+
+    @Override
+    public List<Product> findPendingProducts() {
+        return productMapper.findByStatus(ProductStatus.PENDING);
+    }
+
+    @Override
+    @Transactional
+    public void approve(Long productId, Long adminId) {
+        Product product = productMapper.findById(productId);
+        if (product == null) {
+            throw new BusinessException("鍟嗗搧涓嶅瓨鍦?);
+        }
+        if (!ProductStatus.PENDING.equals(product.getStatus())) {
+            throw new BusinessException("璇ュ晢鍝佷笉鍦ㄥ緟瀹℃牳鐘舵€?);
+        }
+
+        int rows = productMapper.updateStatus(ProductStatus.PUBLISHED, null, productId);
+        if (rows == 0) {
+            throw new BusinessException("璇ュ晢鍝佸凡琚叾浠栫鐞嗗憳澶勭悊");
+        }
+
+        auditLogMapper.insert(productId, adminId, AuditAction.APPROVE, null);
+
+        // 鏀逛负 MQ 寮傛鍙戦€?
+        MqSender.sendMessage(product.getUserId(), "AUDIT_RESULT",
+                "鎮ㄧ殑鍟嗗搧銆? + product.getTitle() + "銆戝凡閫氳繃瀹℃牳骞跺彂甯?);
+
+        RedisUtil.del("product:detail:" + productId);
+    }
+
+    @Override
+    @Transactional
+    public void reject(Long productId, Long adminId, String reason) {
+        Product product = productMapper.findById(productId);
+        if (product == null) {
+            throw new BusinessException("鍟嗗搧涓嶅瓨鍦?);
+        }
+        if (!ProductStatus.PENDING.equals(product.getStatus())) {
+            throw new BusinessException("璇ュ晢鍝佷笉鍦ㄥ緟瀹℃牳鐘舵€?);
+        }
+        if (reason == null || reason.trim().isEmpty()) {
+            throw new BusinessException("椹冲洖鍘熷洜涓嶈兘涓虹┖");
+        }
+
+        int rows = productMapper.updateStatus(ProductStatus.REJECTED, reason, productId);
+        if (rows == 0) {
+            throw new BusinessException("璇ュ晢鍝佸凡琚叾浠栫鐞嗗憳澶勭悊");
+        }
+
+        auditLogMapper.insert(productId, adminId, AuditAction.REJECT, reason);
+
+        // 鏀逛负 MQ 寮傛鍙戦€?
+        MqSender.sendMessage(product.getUserId(), "AUDIT_RESULT",
+                "鎮ㄧ殑鍟嗗搧銆? + product.getTitle() + "銆戝鏍告湭閫氳繃锛屽師鍥狅細" + reason);
+
+        RedisUtil.del("product:detail:" + productId);
+    }
+
+    @Override
+    public List<AuditLog> findLogsByProductId(Long productId) {
+        return auditLogMapper.findByProductId(productId);
+    }
+}
+
+===== FILE: rdc-admin-service\src\main\java\com\klei\admin\service\impl\SensitiveWordServiceImpl.java =====
+package com.klei.admin.service.impl;
+
+import com.klei.admin.service.SensitiveWordService;
+import com.klei.common.annotation.Autowired;
+import com.klei.common.annotation.Component;
+import com.klei.common.annotation.Transactional;
+import com.klei.common.exception.BusinessException;
+import com.klei.common.utils.RedisUtil;
+import com.klei.message.entity.SensitiveWord;
+import com.klei.message.mapper.SensitiveWordMapper;
+
+@Component
+public class SensitiveWordServiceImpl implements SensitiveWordService {
+
+    @Autowired
+    private SensitiveWordMapper sensitiveWordMapper;
+
+    @Override
+    @Transactional
+    public void addWord(String word) {
+        if (word == null || word.trim().isEmpty()) {
+            throw new BusinessException("鏁忔劅璇嶄笉鑳戒负绌?);
+        }
+        String w = word.trim();
+        SensitiveWord exist = sensitiveWordMapper.findByWord(w);
+        if (exist != null && exist.getIsDeleted() == 0) {
+            throw new BusinessException("鏁忔劅璇嶅凡瀛樺湪");
+        }
+        if (exist != null) {
+            sensitiveWordMapper.restoreById(exist.getId());
+        } else {
+            sensitiveWordMapper.insert(w);
+        }
+        RedisUtil.sadd("sensitive:words", w);
+    }
+
+    @Override
+    @Transactional
+    public void deleteWord(Long id) {
+        SensitiveWord word = sensitiveWordMapper.findById(id);
+        if (word == null || word.getIsDeleted() == 1) {
+            throw new BusinessException("鏁忔劅璇嶄笉瀛樺湪");
+        }
+        sensitiveWordMapper.deleteById(id);
+        RedisUtil.srem("sensitive:words", word.getWord());
+    }
+}
+
+===== FILE: rdc-admin-service\src\main\java\com\klei\admin\servlet\AdminServlet.java =====
+package com.klei.admin.servlet;
+
+import com.google.gson.reflect.TypeToken;
+import com.klei.admin.service.AdminProductService;
+import com.klei.admin.service.AdminUserService;
+import com.klei.admin.service.SensitiveWordService;
+import com.klei.common.annotation.RequireRole;
+import com.klei.common.ioc.IoCContainer;
+import com.klei.common.servlet.BaseServlet;
+import com.klei.common.utils.Result;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.time.LocalDateTime;
+import java.util.Map;
+
+@RequireRole("ROLE_ADMIN")
+@WebServlet(urlPatterns = {"/admin/*"})
+public class AdminServlet extends BaseServlet {
+
+    private AdminUserService adminUserService;
+    private AdminProductService adminProductService;
+    private SensitiveWordService sensitiveWordService;
+    private final Type mapType = new TypeToken<Map<String, String>>() {}.getType();
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        this.adminUserService = IoCContainer.getBean(AdminUserService.class);
+        this.adminProductService = IoCContainer.getBean(AdminProductService.class);
+        this.sensitiveWordService = IoCContainer.getBean(SensitiveWordService.class);
+    }
+
+    private void ban(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Map<String, String> map = gson.fromJson(req.getReader(), mapType);
+        Long userId = Long.valueOf(map.get("userId"));
+        LocalDateTime banEndTime = LocalDateTime.parse(map.get("banEndTime"));
+        adminUserService.banUser(userId, banEndTime);
+        writeJson(resp, Result.ok());
+    }
+
+    private void unban(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Map<String, String> map = gson.fromJson(req.getReader(), mapType);
+        Long userId = Long.valueOf(map.get("userId"));
+        adminUserService.unbanUser(userId);
+        writeJson(resp, Result.ok());
+    }
+
+    private void forceOffShelf(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Map<String, String> map = gson.fromJson(req.getReader(), mapType);
+        Long productId = Long.valueOf(map.get("productId"));
+        adminUserService.forceOffShelf(productId);
+        writeJson(resp, Result.ok());
+    }
+
+    private void deleteComment(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Map<String, String> map = gson.fromJson(req.getReader(), mapType);
+        Long commentId = Long.valueOf(map.get("commentId"));
+        adminUserService.deleteComment(commentId);
+        writeJson(resp, Result.ok());
+    }
+
+    private void exposure(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Map<String, String> map = gson.fromJson(req.getReader(), mapType);
+        Long productId = Long.valueOf(map.get("productId"));
+        Integer weight = Integer.valueOf(map.get("weight"));
+        adminProductService.increaseExposure(productId, weight);
+        writeJson(resp, Result.ok());
+    }
+
+    private void deleteProduct(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Map<String, String> map = gson.fromJson(req.getReader(), mapType);
+        Long productId = Long.valueOf(map.get("productId"));
+        adminProductService.deleteProduct(productId);
+        writeJson(resp, Result.ok());
+    }
+
+    private void addSensitive(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Map<String, String> map = gson.fromJson(req.getReader(), mapType);
+        String word = map.get("word");
+        sensitiveWordService.addWord(word);
+        writeJson(resp, Result.ok());
+    }
+
+    private void deleteSensitive(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Map<String, String> map = gson.fromJson(req.getReader(), mapType);
+        Long id = Long.valueOf(map.get("id"));
+        sensitiveWordService.deleteWord(id);
+        writeJson(resp, Result.ok());
+    }
+}
+
+===== FILE: rdc-admin-service\src\main\java\com\klei\admin\servlet\AuditServlet.java =====
+package com.klei.admin.servlet;
+
+import com.google.gson.reflect.TypeToken;
+import com.klei.admin.service.AuditService;
+import com.klei.common.annotation.RequireRole;
+import com.klei.common.ioc.IoCContainer;
+import com.klei.common.servlet.BaseServlet;
+import com.klei.common.utils.Result;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.Map;
+
+@RequireRole("ROLE_ADMIN")
+@WebServlet(urlPatterns = {"/admin/audit/*"})
+public class AuditServlet extends BaseServlet {
+
+    private AuditService auditService;
+    private final Type mapType = new TypeToken<Map<String, String>>() {}.getType();
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        this.auditService = IoCContainer.getBean(AuditService.class);
+    }
+
+    private void pending(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        writeJson(resp, Result.ok(auditService.findPendingProducts()));
+    }
+
+    private void approve(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Map<String, String> map = gson.fromJson(req.getReader(), mapType);
+        Long productId = Long.valueOf(map.get("productId"));
+        Long adminId = (Long) req.getAttribute("userId");
+
+        auditService.approve(productId, adminId);
+        writeJson(resp, Result.ok());
+    }
+
+    private void reject(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Map<String, String> map = gson.fromJson(req.getReader(), mapType);
+        Long productId = Long.valueOf(map.get("productId"));
+        String reason = map.get("reason");
+        Long adminId = (Long) req.getAttribute("userId");
+
+        auditService.reject(productId, adminId, reason);
+        writeJson(resp, Result.ok());
+    }
+
+    private void logs(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long productId = Long.valueOf(req.getParameter("productId"));
+        writeJson(resp, Result.ok(auditService.findLogsByProductId(productId)));
+    }
+}
+
 ===== FILE: rdc-admin-service\src\main\webapp\WEB-INF\web.xml =====
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
@@ -759,6 +936,14 @@ public interface AuditLogMapper {
         <param-value>com.klei.admin</param-value>
     </context-param>
 
+    <filter>
+        <filter-name>corsFilter</filter-name>
+        <filter-class>com.klei.common.filter.CorsFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>corsFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
     <filter>
         <filter-name>encodingFilter</filter-name>
         <filter-class>com.klei.common.filter.EncodingFilter</filter-class>
@@ -813,6 +998,10 @@ public interface AuditLogMapper {
     <packaging>jar</packaging>
 
     <dependencies>
+        <dependency>
+            <groupId>com.rabbitmq</groupId>
+            <artifactId>amqp-client</artifactId>
+        </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
@@ -1145,7 +1334,7 @@ public class AuthFilter implements Filter {
                 ? new ArrayList<>()
                 : Arrays.asList(rolesStr.split(","));
 
-        // ===== 灏佺妫€鏌ワ細鏈埌鏈熸嫤鎴紝宸茶繃鏈熻嚜鍔ㄨВ灏?=====
+        // 灏佺妫€鏌ワ細鏈埌鏈熸嫤鎴紝宸茶繃鏈熻嚜鍔ㄨВ灏?
         Date banEndTimeClaim = jwt.getClaim("banEndTime").asDate();
         if (banEndTimeClaim != null) {
             LocalDateTime banEnd = new java.sql.Timestamp(banEndTimeClaim.getTime()).toLocalDateTime();
@@ -1163,7 +1352,6 @@ public class AuthFilter implements Filter {
                 }
             }
         }
-        // =================================================
 
         String blacklistKey = "blacklist:access:" + userId;
         if (RedisUtil.exists(blacklistKey)) {
@@ -1220,6 +1408,42 @@ public class AuthFilter implements Filter {
     public void destroy() {}
 }
 
+===== FILE: rdc-common\src\main\java\com\klei\common\filter\CorsFilter.java =====
+package com.klei.common.filter;
+
+import javax.servlet.*;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+
+public class CorsFilter implements Filter {
+
+    @Override
+    public void init(FilterConfig filterConfig) {}
+
+    @Override
+    public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
+            throws IOException, ServletException {
+        HttpServletRequest request = (HttpServletRequest) req;
+        HttpServletResponse response = (HttpServletResponse) resp;
+
+        response.setHeader("Access-Control-Allow-Origin", "*");
+        response.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        response.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        response.setHeader("Access-Control-Max-Age", "3600");
+
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())) {
+            response.setStatus(HttpServletResponse.SC_OK);
+            return;
+        }
+
+        chain.doFilter(req, resp);
+    }
+
+    @Override
+    public void destroy() {}
+}
+
 ===== FILE: rdc-common\src\main\java\com\klei\common\filter\EncodingFilter.java =====
 package com.klei.common.filter;
 
@@ -1266,7 +1490,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-@WebFilter("/*")
 public class GlobalExceptionFilter implements Filter {
 
     private final Gson gson = new Gson();
@@ -1517,7 +1740,9 @@ public class IoCContainer {
 package com.klei.common.listener;
 
 import com.klei.common.ioc.IoCContainer;
+import com.klei.common.mq.RabbitMQConfig;
 import com.klei.common.pool.ConnectionPool;
+import com.klei.common.utils.LogUtil;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
@@ -1533,11 +1758,40 @@ public class AppContextListener implements ServletContextListener {
             scanPackage = "com.klei";
         }
         IoCContainer.scan(scanPackage);
-        System.out.println("搴旂敤鍚姩锛岃繛鎺ユ睜宸插垵濮嬪寲锛孖oC宸叉壂鎻? " + scanPackage);
+        System.out.println("搴旂敤鍚姩锛岃繛鎺ユ睜宸插垵濮嬪寲锛孖oC宸叉壂鎻?" + scanPackage);
+
+        // RabbitMQ 娑堣垂鑰呭惎鍔紙濡傛灉褰撳墠妯″潡鍖呭惈 message-service 鐨勭被锛?
+        try {
+            Class<?> consumerClass = Class.forName("com.klei.message.mq.MessageConsumer");
+            Object consumer = IoCContainer.getBean(consumerClass);
+            if (consumer != null) {
+                consumerClass.getMethod("start").invoke(consumer);
+                System.out.println("RabbitMQ 娑堣垂鑰呭凡鍚姩");
+            }
+        } catch (ClassNotFoundException e) {
+            System.out.println("褰撳墠妯″潡鏃?MessageConsumer锛岃烦杩?RabbitMQ 娑堣垂鑰呭惎鍔?);
+        } catch (Exception e) {
+            LogUtil.error("RabbitMQ 娑堣垂鑰呭惎鍔ㄥ紓甯?, e);
+        }
+
+        // 鏁忔劅璇嶇儹鍔犺浇鍒?Redis
+        try {
+            Class<?> swInitClass = Class.forName("com.klei.message.init.SensitiveWordInit");
+            Object swInit = IoCContainer.getBean(swInitClass);
+            if (swInit != null) {
+                swInitClass.getMethod("load").invoke(swInit);
+                System.out.println("鏁忔劅璇嶅凡鍔犺浇鍒?Redis");
+            }
+        } catch (ClassNotFoundException e) {
+            System.out.println("褰撳墠妯″潡鏃?SensitiveWordInit锛岃烦杩囨晱鎰熻瘝鍔犺浇");
+        } catch (Exception e) {
+            LogUtil.error("鏁忔劅璇嶅姞杞藉紓甯?, e);
+        }
     }
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {
+        RabbitMQConfig.close();
         ConnectionPool.destroy();
         System.out.println("搴旂敤鍏抽棴锛岃繛鎺ユ睜宸查攢姣?);
     }
@@ -1688,6 +1942,150 @@ public class MapperProxyFactory {
                 new Class[]{mapperInterface},
                 new MapperProxy()
         );
+    }
+}
+
+===== FILE: rdc-common\src\main\java\com\klei\common\mq\MqSender.java =====
+package com.klei.common.mq;
+
+import com.google.gson.Gson;
+import com.klei.common.utils.LogUtil;
+import com.rabbitmq.client.Channel;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+
+public class MqSender {
+    private static final Gson gson = new Gson();
+
+    public static void sendMessage(Long userId, String type, String content) {
+        Channel channel = RabbitMQConfig.getChannel();
+        if (channel == null) {
+            LogUtil.error("MQ Channel 涓虹┖锛屾秷鎭彂閫佸け璐?);
+            return;
+        }
+        Map<String, Object> map = new HashMap<>();
+        map.put("userId", userId);
+        map.put("type", type);
+        map.put("content", content);
+        String json = gson.toJson(map);
+        try {
+            channel.basicPublish(
+                    RabbitMQConfig.getExchange(),
+                    RabbitMQConfig.getRoutingKey(),
+                    null,
+                    json.getBytes(StandardCharsets.UTF_8)
+            );
+        } catch (IOException e) {
+            LogUtil.error("MQ 娑堟伅鍙戦€佸け璐?, e);
+        }
+    }
+}
+
+===== FILE: rdc-common\src\main\java\com\klei\common\mq\RabbitMQConfig.java =====
+package com.klei.common.mq;
+
+import com.klei.common.utils.LogUtil;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeoutException;
+
+public class RabbitMQConfig {
+
+    private static final String HOST = "localhost";
+    private static final int PORT = 5672;
+    private static final String USER = "guest";
+    private static final String PASS = "guest";
+
+    // 涓讳氦鎹㈡満鍜岄槦鍒?
+    private static final String EXCHANGE = "xianyu.direct";
+    private static final String QUEUE = "msg.queue";
+    private static final String ROUTING_KEY = "msg";
+
+    // 姝讳俊浜ゆ崲鏈哄拰闃熷垪
+    private static final String DLX_EXCHANGE = "xianyu.dlx";
+    private static final String DLX_QUEUE = "msg.dlq";
+    private static final String DLX_ROUTING_KEY = "msg.dlq";
+
+    private static Connection connection;
+    private static Channel channel;
+
+    static {
+        try {
+            ConnectionFactory factory = new ConnectionFactory();
+            factory.setHost(HOST);
+            factory.setPort(PORT);
+            factory.setUsername(USER);
+            factory.setPassword(PASS);
+            connection = factory.newConnection();
+            channel = connection.createChannel();
+
+            // 姝讳俊浜ゆ崲鏈?
+            channel.exchangeDeclare(DLX_EXCHANGE, "direct", true);
+            channel.queueDeclare(DLX_QUEUE, true, false, false, null);
+            channel.queueBind(DLX_QUEUE, DLX_EXCHANGE, DLX_ROUTING_KEY);
+
+            // 涓婚槦鍒楃粦瀹氭淇″弬鏁?
+            Map<String, Object> queueArgs = new HashMap<>();
+            queueArgs.put("x-dead-letter-exchange", DLX_EXCHANGE);
+            queueArgs.put("x-dead-letter-routing-key", DLX_ROUTING_KEY);
+
+            channel.exchangeDeclare(EXCHANGE, "direct", true);
+            channel.queueDeclare(QUEUE, true, false, false, queueArgs);
+            channel.queueBind(QUEUE, EXCHANGE, ROUTING_KEY);
+
+            LogUtil.info("RabbitMQ 杩炴帴鎴愬姛锛屾淇￠槦鍒楀凡閰嶇疆");
+        } catch (Exception e) {
+            LogUtil.error("RabbitMQ 鍒濆鍖栧け璐?, e);
+        }
+    }
+
+    public static Channel getChannel() {
+        return channel;
+    }
+
+    public static String getExchange() {
+        return EXCHANGE;
+    }
+
+    public static String getQueue() {
+        return QUEUE;
+    }
+
+    public static String getRoutingKey() {
+        return ROUTING_KEY;
+    }
+
+    public static String getDlxExchange() {
+        return DLX_EXCHANGE;
+    }
+
+    public static String getDlxQueue() {
+        return DLX_QUEUE;
+    }
+
+    public static String getDlxRoutingKey() {
+        return DLX_ROUTING_KEY;
+    }
+
+    public static void close() {
+        try {
+            if (channel != null && channel.isOpen()) {
+                channel.close();
+            }
+            if (connection != null && connection.isOpen()) {
+                connection.close();
+            }
+        } catch (IOException | TimeoutException e) {
+            LogUtil.error("RabbitMQ 鍏抽棴澶辫触", e);
+        }
     }
 }
 
@@ -1865,20 +2263,26 @@ public class PooledConnectionHandler implements InvocationHandler {
 ===== FILE: rdc-common\src\main\java\com\klei\common\servlet\BaseServlet.java =====
 package com.klei.common.servlet;
 
+import com.google.gson.Gson;
 import com.klei.common.annotation.RequirePermission;
 import com.klei.common.annotation.RequireRole;
 import com.klei.common.exception.AuthException;
+import com.klei.common.exception.BusinessException;
+import com.klei.common.utils.Result;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
 
 public abstract class BaseServlet extends HttpServlet {
+
+    protected final Gson gson = new Gson();
 
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -1894,6 +2298,123 @@ public abstract class BaseServlet extends HttpServlet {
         super.service(req, resp);
     }
 
+    /* ========== 榛樿鑷姩鍒嗗彂锛屽瓙绫绘棤闇€閲嶅啓 ========== */
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        autoDispatch(req, resp);
+    }
+
+    @Override
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        autoDispatch(req, resp);
+    }
+
+    @Override
+    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        autoDispatch(req, resp);
+    }
+
+    @Override
+    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        autoDispatch(req, resp);
+    }
+
+    /* ========== 鍙嶅皠鍒嗗彂鏍稿績 ========== */
+    protected void autoDispatch(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        resp.setContentType("application/json;charset=UTF-8");
+
+        String action = resolveAction(req);
+        Method method = findActionMethod(action);
+
+        if (method == null) {
+            writeJson(resp, Result.fail("鏈煡鎿嶄綔: " + action));
+            return;
+        }
+
+        try {
+            method.setAccessible(true);
+            method.invoke(this, req, resp);
+        } catch (InvocationTargetException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof BusinessException) {
+                writeJson(resp, Result.fail(cause.getMessage()));
+            } else if (cause instanceof AuthException) {
+                AuthException ae = (AuthException) cause;
+                resp.setStatus(ae.getCode());
+                writeJson(resp, Result.fail(ae.getCode(), ae.getMessage()));
+            } else if (cause instanceof IOException) {
+                throw (IOException) cause;
+            } else {
+                throw new IOException(cause);
+            }
+        } catch (Exception e) {
+            throw new IOException(e);
+        }
+    }
+
+    /** 浠?action 鍙傛暟鎴?URL 璺緞瑙ｆ瀽鏂规硶鍚?*/
+    private String resolveAction(HttpServletRequest req) {
+        String action = req.getParameter("action");
+        if (action != null && !action.isEmpty()) {
+            return action;
+        }
+
+        String path = req.getServletPath();
+        action = path.substring(path.lastIndexOf('/') + 1);
+        if (action.isEmpty()) {
+            action = "index";
+        }
+        if (action.contains(".")) {
+            action = action.substring(0, action.indexOf('.'));
+        }
+
+        // 妯潬杞┘宄帮細refresh-token -> refreshToken
+        StringBuilder sb = new StringBuilder();
+        boolean upperNext = false;
+        for (char c : action.toCharArray()) {
+            if (c == '-') {
+                upperNext = true;
+            } else if (upperNext) {
+                sb.append(Character.toUpperCase(c));
+                upperNext = false;
+            } else {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
+
+    /** 鎸?action 鍚嶆壘鏂规硶锛氭敮鎸?login / doLogin / handleLogin */
+    private Method findActionMethod(String action) {
+        String[] candidates = {
+                action,
+                "do" + capitalize(action),
+                "handle" + capitalize(action)
+        };
+        Class<?> clazz = this.getClass();
+        for (String name : candidates) {
+            try {
+                Method m = clazz.getDeclaredMethod(name, HttpServletRequest.class, HttpServletResponse.class);
+                if (!m.isSynthetic() && m.getReturnType() == void.class) {
+                    return m;
+                }
+            } catch (NoSuchMethodException ignored) {}
+        }
+        return null;
+    }
+
+    private String capitalize(String s) {
+        if (s == null || s.isEmpty()) {
+            return s;
+        }
+        return s.substring(0, 1).toUpperCase() + s.substring(1);
+    }
+
+    protected void writeJson(HttpServletResponse resp, Result<?> result) throws IOException {
+        resp.getWriter().write(gson.toJson(result));
+    }
+
+    /* ========== 鍘熸湁娉ㄨВ妫€鏌ラ€昏緫锛屼繚鎸佷笉鍙?========== */
     private Method findMethod(Class<?> clazz, String name) {
         while (clazz != null && clazz != HttpServlet.class) {
             try {
@@ -2856,7 +3377,8 @@ public class ResultSetMapper {
         if (value == null) {
             return null;
         }
-        if (targetType.isAssignableFrom(value.getClass())) {
+        // 淇锛氬師浠ｇ爜 isAssignableFrom 鏂瑰悜鍐欏弽锛屾敼涓?isInstance
+        if (targetType.isInstance(value)) {
             return value;
         }
 
@@ -2908,7 +3430,7 @@ public class ResultSetMapper {
                     Object enumValue = Enum.valueOf((Class<Enum>) targetType, enumStr);
                     return enumValue;
                 } catch (IllegalArgumentException e) {
-                    throw new RuntimeException("鏋氫妇鏄犲皠澶辫触: " + targetType.getSimpleName() + " 涓嶅瓨鍦ㄥ€?'" + enumStr + "'", e);
+                    throw new RuntimeException("鏋氫妇鏄犲皠澶辫触: " + targetType.getSimpleName() + " 涓嶅瓨鍦ㄥ€?" + enumStr + "'", e);
                 }
             }
         }
@@ -2956,6 +3478,11 @@ mail.port=587
             <scope>provided</scope>
         </dependency>
         <dependency>
+            <groupId>javax.websocket</groupId>
+            <artifactId>javax.websocket-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
@@ -2972,6 +3499,19 @@ mail.port=587
         </plugins>
     </build>
 </project>
+
+===== FILE: rdc-message-service\src\main\java\com\klei\message\dto\MsgQueueItem.java =====
+package com.klei.message.dto;
+
+import com.klei.message.entity.enums.MessageType;
+import lombok.Data;
+
+@Data
+public class MsgQueueItem {
+    private Long userId;
+    private MessageType type;
+    private String content;
+}
 
 ===== FILE: rdc-message-service\src\main\java\com\klei\message\entity\ChatRecord.java =====
 package com.klei.message.entity;
@@ -3029,6 +3569,75 @@ public enum MessageType {
     PRODUCT_SOLD, FOLLOW_NEW_PRODUCT, AUDIT_RESULT, SYSTEM
 }
 
+===== FILE: rdc-message-service\src\main\java\com\klei\message\init\SensitiveWordInit.java =====
+package com.klei.message.init;
+
+import com.klei.common.annotation.Autowired;
+import com.klei.common.annotation.Component;
+import com.klei.common.utils.LogUtil;
+import com.klei.common.utils.RedisUtil;
+import com.klei.message.entity.SensitiveWord;
+import com.klei.message.mapper.SensitiveWordMapper;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+
+@Component
+public class SensitiveWordInit {
+
+    @Autowired
+    private SensitiveWordMapper sensitiveWordMapper;
+
+    public void load() {
+        // 1. 鍏堟竻绌猴紝鍐嶄粠鏁版嵁搴撳姞杞?
+        List<SensitiveWord> list = sensitiveWordMapper.findAll();
+        RedisUtil.del("sensitive:words");
+        if (list != null && !list.isEmpty()) {
+            String[] words = list.stream()
+                    .map(SensitiveWord::getWord)
+                    .filter(w -> w != null && !w.isEmpty())
+                    .toArray(String[]::new);
+            if (words.length > 0) {
+                RedisUtil.sadd("sensitive:words", words);
+            }
+        }
+
+        // 2. 浠庢湰鍦版枃浠剁儹鍔犺浇锛坈lasspath: sensitive_words.txt锛夛紝鍚堝苟鍒?Redis
+        int fileCount = loadFromFile();
+
+        LogUtil.info("鏁忔劅璇嶅姞杞藉畬鎴愶紝鏁版嵁搴? " + (list == null ? 0 : list.size())
+                + " 鏉★紝鏈湴鏂囦欢琛ュ厖: " + fileCount + " 鏉?);
+    }
+
+    private int loadFromFile() {
+        int count = 0;
+        try (InputStream is = getClass().getClassLoader().getResourceAsStream("sensitive_words.txt")) {
+            if (is == null) {
+                LogUtil.warn("鏈壘鍒?classpath:sensitive_words.txt锛岃烦杩囨湰鍦版枃浠跺姞杞?);
+                return 0;
+            }
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    String word = line.trim();
+                    if (word.isEmpty() || word.startsWith("#")) {
+                        continue; // 璺宠繃绌鸿鍜屾敞閲婅
+                    }
+                    RedisUtil.sadd("sensitive:words", word);
+                    count++;
+                }
+            }
+        } catch (IOException e) {
+            LogUtil.error("璇诲彇鏈湴鏁忔劅璇嶆枃浠跺け璐?, e);
+        }
+        return count;
+    }
+}
+
 ===== FILE: rdc-message-service\src\main\java\com\klei\message\mapper\ChatRecordMapper.java =====
 package com.klei.message.mapper;
 
@@ -3041,7 +3650,7 @@ public interface ChatRecordMapper {
     @Select("SELECT * FROM chat_record WHERE id = ? AND is_deleted = 0")
     ChatRecord findById(Long id);
 
-    @Select("SELECT * FROM chat_record WHERE (sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?) AND is_deleted = 0 ORDER BY created_at ASC")
+    @Select("SELECT * FROM chat_record WHERE ((sender_id = ? AND receiver_id = ?) OR (sender_id = ? AND receiver_id = ?)) AND is_deleted = 0 ORDER BY created_at ASC")
     List<ChatRecord> findDialog(Long userA, Long userB, Long userB2, Long userA2);
 
     @Insert("INSERT INTO chat_record (sender_id, receiver_id, product_id, content, is_deleted, created_at) VALUES (?, ?, ?, ?, 0, NOW())")
@@ -3106,6 +3715,428 @@ public interface SensitiveWordMapper {
 
     @Update("UPDATE sensitive_word SET is_deleted = 1 WHERE id = ?")
     int deleteById(Long id);
+
+    @Update("UPDATE sensitive_word SET is_deleted = 0 WHERE id = ?")
+    int restoreById(Long id);
+}
+
+===== FILE: rdc-message-service\src\main\java\com\klei\message\mq\MessageConsumer.java =====
+package com.klei.message.mq;
+
+import com.google.gson.Gson;
+import com.klei.common.annotation.Autowired;
+import com.klei.common.annotation.Component;
+import com.klei.common.mq.RabbitMQConfig;
+import com.klei.common.utils.LogUtil;
+import com.klei.message.dto.MsgQueueItem;
+import com.klei.message.mapper.MessageMapper;
+import com.rabbitmq.client.AMQP;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.DefaultConsumer;
+import com.rabbitmq.client.Envelope;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
+import java.util.Map;
+
+@Component
+public class MessageConsumer {
+
+    @Autowired
+    private MessageMapper messageMapper;
+
+    private final Gson gson = new Gson();
+    private static final int MAX_RETRY = 2; // 鏈€澶氶噸璇?3 娆★紙0,1,2锛?
+
+    public void start() {
+        Channel channel = RabbitMQConfig.getChannel();
+        if (channel == null) {
+            LogUtil.error("RabbitMQ Channel 涓虹┖锛屾秷璐硅€呮棤娉曞惎鍔?);
+            return;
+        }
+        try {
+            channel.basicQos(1);
+            channel.basicConsume(RabbitMQConfig.getQueue(), false, new DefaultConsumer(channel) {
+                @Override
+                public void handleDelivery(String consumerTag, Envelope envelope,
+                                           AMQP.BasicProperties properties, byte[] body) throws IOException {
+                    String json = new String(body, StandardCharsets.UTF_8);
+
+                    // 璇诲彇閲嶈瘯娆℃暟
+                    int retryCount = 0;
+                    if (properties.getHeaders() != null && properties.getHeaders().get("x-retry-count") != null) {
+                        Object rc = properties.getHeaders().get("x-retry-count");
+                        if (rc instanceof Number) {
+                            retryCount = ((Number) rc).intValue();
+                        }
+                    }
+
+                    try {
+                        MsgQueueItem item = gson.fromJson(json, MsgQueueItem.class);
+                        messageMapper.insert(item.getUserId(), item.getType(), item.getContent());
+                        channel.basicAck(envelope.getDeliveryTag(), false);
+                    } catch (Exception e) {
+                        LogUtil.error("娑堟伅娑堣垂澶辫触锛屽綋鍓嶉噸璇曟鏁? " + retryCount + " | " + json, e);
+
+                        if (retryCount < MAX_RETRY) {
+                            // 閲嶆柊鍙戝竷锛岄噸璇曟鏁?+1
+                            Map<String, Object> newHeaders = new HashMap<>();
+                            newHeaders.put("x-retry-count", retryCount + 1);
+
+                            AMQP.BasicProperties newProps = new AMQP.BasicProperties.Builder()
+                                    .headers(newHeaders)
+                                    .build();
+
+                            try {
+                                channel.basicPublish(
+                                        RabbitMQConfig.getExchange(),
+                                        RabbitMQConfig.getRoutingKey(),
+                                        newProps,
+                                        body
+                                );
+                                // 鍘熸秷鎭?ack锛岄伩鍏嶉噸澶?
+                                channel.basicAck(envelope.getDeliveryTag(), false);
+                            } catch (IOException ex) {
+                                LogUtil.error("閲嶈瘯娑堟伅閲嶆柊鍙戝竷澶辫触", ex);
+                                channel.basicNack(envelope.getDeliveryTag(), false, true);
+                            }
+                        } else {
+                            // 瓒呰繃鏈€澶ч噸璇曟鏁帮紝杩涘叆姝讳俊闃熷垪
+                            channel.basicNack(envelope.getDeliveryTag(), false, false);
+                            LogUtil.error("娑堟伅杩涘叆姝讳俊闃熷垪: " + json);
+                        }
+                    }
+                }
+            });
+            LogUtil.info("RabbitMQ 娑堟伅娑堣垂鑰呭凡鍚姩锛屾渶澶ч噸璇曟鏁? " + (MAX_RETRY + 1));
+        } catch (IOException e) {
+            LogUtil.error("RabbitMQ 娑堣垂鑰呭惎鍔ㄥけ璐?, e);
+        }
+    }
+}
+
+===== FILE: rdc-message-service\src\main\java\com\klei\message\service\MessageService.java =====
+package com.klei.message.service;
+
+import com.klei.message.entity.enums.MessageType;
+import com.klei.message.vo.MessageVO;
+import java.util.List;
+
+public interface MessageService {
+
+    List<MessageVO> findByUserId(Long userId);
+
+    int getUnreadCount(Long userId);
+
+    void markRead(Long messageId, Long userId);
+
+    void markAllRead(Long userId);
+
+    void sendMessage(Long userId, MessageType type, String content);
+
+    void flushQueue();
+}
+
+===== FILE: rdc-message-service\src\main\java\com\klei\message\service\impl\MessageServiceImpl.java =====
+package com.klei.message.service.impl;
+
+import com.google.gson.Gson;
+import com.klei.common.annotation.Autowired;
+import com.klei.common.annotation.Component;
+import com.klei.common.exception.BusinessException;
+import com.klei.common.mq.RabbitMQConfig;
+import com.klei.common.utils.LogUtil;
+import com.klei.message.dto.MsgQueueItem;
+import com.klei.message.entity.Message;
+import com.klei.message.entity.enums.MessageType;
+import com.klei.message.mapper.MessageMapper;
+import com.klei.message.service.MessageService;
+import com.klei.message.vo.MessageVO;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Component
+public class MessageServiceImpl implements MessageService {
+
+    @Autowired
+    private MessageMapper messageMapper;
+
+    private final Gson gson = new Gson();
+
+    @Override
+    public List<MessageVO> findByUserId(Long userId) {
+        return messageMapper.findByUserId(userId).stream()
+                .map(this::toVO).collect(Collectors.toList());
+    }
+
+    @Override
+    public int getUnreadCount(Long userId) {
+        return messageMapper.findUnreadByUserId(userId).size();
+    }
+
+    @Override
+    public void markRead(Long messageId, Long userId) {
+        Message msg = messageMapper.findById(messageId);
+        if (msg == null || msg.getIsDeleted() == 1) {
+            throw new BusinessException("娑堟伅涓嶅瓨鍦?);
+        }
+        if (!msg.getUserId().equals(userId)) {
+            throw new BusinessException("鏃犳潈鎿嶄綔");
+        }
+        messageMapper.markRead(messageId);
+    }
+
+    @Override
+    public void markAllRead(Long userId) {
+        messageMapper.markAllRead(userId);
+    }
+
+    @Override
+    public void sendMessage(Long userId, MessageType type, String content) {
+        MsgQueueItem item = new MsgQueueItem();
+        item.setUserId(userId);
+        item.setType(type);
+        item.setContent(content);
+        String json = gson.toJson(item);
+        try {
+            RabbitMQConfig.getChannel().basicPublish(
+                    RabbitMQConfig.getExchange(),
+                    RabbitMQConfig.getRoutingKey(),
+                    null,
+                    json.getBytes(StandardCharsets.UTF_8)
+            );
+        } catch (IOException e) {
+            LogUtil.error("RabbitMQ 娑堟伅鍙戦€佸け璐?, e);
+            throw new RuntimeException("娑堟伅鍙戦€佸け璐?, e);
+        }
+    }
+
+    @Override
+    public void flushQueue() {
+        // RabbitMQ 妯″紡涓嬬敱娑堣垂鑰呭疄鏃舵秷璐癸紝鏃犻渶鎵嬪姩 flush
+    }
+
+    private MessageVO toVO(Message m) {
+        MessageVO vo = new MessageVO();
+        vo.setId(m.getId());
+        vo.setType(m.getType());
+        vo.setContent(m.getContent());
+        vo.setIsRead(m.getIsRead());
+        vo.setCreatedAt(m.getCreatedAt());
+        return vo;
+    }
+}
+
+===== FILE: rdc-message-service\src\main\java\com\klei\message\servlet\MessageServlet.java =====
+package com.klei.message.servlet;
+
+import com.google.gson.reflect.TypeToken;
+import com.klei.common.ioc.IoCContainer;
+import com.klei.common.mapper.MapperProxyFactory;
+import com.klei.common.servlet.BaseServlet;
+import com.klei.common.utils.AuthUtil;
+import com.klei.common.utils.Result;
+import com.klei.message.mapper.ChatRecordMapper;
+import com.klei.message.service.MessageService;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.Map;
+
+@WebServlet(urlPatterns = {"/message/*", "/chat/history"})
+public class MessageServlet extends BaseServlet {
+
+    private MessageService messageService;
+    private ChatRecordMapper chatRecordMapper;
+    private final Type mapType = new TypeToken<Map<String, String>>() {}.getType();
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        this.messageService = IoCContainer.getBean(MessageService.class);
+        this.chatRecordMapper = MapperProxyFactory.getMapper(ChatRecordMapper.class);
+    }
+
+    private void list(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long userId = AuthUtil.getUserId(req);
+        writeJson(resp, Result.ok(messageService.findByUserId(userId)));
+    }
+
+    private void unreadCount(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long userId = AuthUtil.getUserId(req);
+        writeJson(resp, Result.ok(messageService.getUnreadCount(userId)));
+    }
+
+    private void read(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long userId = AuthUtil.getUserId(req);
+        Map<String, String> map = gson.fromJson(req.getReader(), mapType);
+        Long messageId = Long.valueOf(map.get("messageId"));
+        messageService.markRead(messageId, userId);
+        writeJson(resp, Result.ok());
+    }
+
+    private void readAll(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long userId = AuthUtil.getUserId(req);
+        messageService.markAllRead(userId);
+        writeJson(resp, Result.ok());
+    }
+
+    private void history(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long userId = AuthUtil.getUserId(req);
+        Long otherId = Long.valueOf(req.getParameter("otherId"));
+        writeJson(resp, Result.ok(chatRecordMapper.findDialog(userId, otherId, otherId, userId)));
+    }
+}
+
+===== FILE: rdc-message-service\src\main\java\com\klei\message\vo\MessageVO.java =====
+package com.klei.message.vo;
+
+import com.klei.message.entity.enums.MessageType;
+import lombok.Data;
+import java.time.LocalDateTime;
+
+@Data
+public class MessageVO {
+    private Long id;
+    private MessageType type;
+    private String content;
+    private Integer isRead;
+    private LocalDateTime createdAt;
+}
+
+===== FILE: rdc-message-service\src\main\java\com\klei\message\websocket\ChatWebSocket.java =====
+package com.klei.message.websocket;
+
+import com.google.gson.Gson;
+import com.klei.common.mapper.MapperProxyFactory;
+import com.klei.common.utils.JwtUtil;
+import com.klei.common.utils.RedisUtil;
+import com.klei.message.mapper.ChatRecordMapper;
+
+import javax.websocket.*;
+import javax.websocket.server.ServerEndpoint;
+import java.io.IOException;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+
+@ServerEndpoint("/chat")
+public class ChatWebSocket {
+
+    private static final Gson gson = new Gson();
+    private static final Map<Long, Session> onlineUsers = new ConcurrentHashMap<>();
+
+    private Long userId;
+    private ChatRecordMapper chatRecordMapper;
+
+    @OnOpen
+    public void onOpen(Session session) {
+        String token = getQueryParam(session, "token");
+        if (token == null) {
+            close(session);
+            return;
+        }
+        try {
+            this.userId = JwtUtil.getUserId(token);
+            onlineUsers.put(this.userId, session);
+            this.chatRecordMapper = MapperProxyFactory.getMapper(ChatRecordMapper.class);
+        } catch (Exception e) {
+            close(session);
+        }
+    }
+
+    @OnMessage
+    public void onMessage(String message, Session session) {
+        ChatMsg msg = gson.fromJson(message, ChatMsg.class);
+        if (msg == null || msg.receiverId == null || msg.content == null || msg.content.trim().isEmpty()) {
+            return;
+        }
+
+        String filtered = filter(msg.content.trim());
+
+        chatRecordMapper.insert(this.userId, msg.receiverId, msg.productId, filtered);
+
+        Session target = onlineUsers.get(msg.receiverId);
+        if (target != null && target.isOpen()) {
+            try {
+                target.getBasicRemote().sendText(
+                        gson.toJson(new ChatResp(this.userId, msg.productId, filtered))
+                );
+            } catch (IOException ignored) {}
+        }
+    }
+
+    @OnClose
+    public void onClose(Session session) {
+        if (this.userId != null) {
+            onlineUsers.remove(this.userId);
+        }
+    }
+
+    @OnError
+    public void onError(Session session, Throwable error) {
+        if (this.userId != null) {
+            onlineUsers.remove(this.userId);
+        }
+    }
+
+    private String filter(String content) {
+        Set<String> words = RedisUtil.smembers("sensitive:words");
+        if (words == null || words.isEmpty()) {
+            return content;
+        }
+        String result = content;
+        for (String word : words) {
+            if (word != null && !word.isEmpty() && result.contains(word)) {
+                result = result.replace(word, "*".repeat(word.length()));
+            }
+        }
+        return result;
+    }
+
+    private String getQueryParam(Session session, String key) {
+        String query = session.getRequestURI().getQuery();
+        if (query == null) {
+            return null;
+        }
+        for (String param : query.split("&")) {
+            String[] kv = param.split("=");
+            if (kv.length == 2 && kv[0].equals(key)) {
+                return kv[1];
+            }
+        }
+        return null;
+    }
+
+    private void close(Session session) {
+        try { session.close(); } catch (IOException ignored) {}
+    }
+
+    private static class ChatMsg {
+        Long receiverId;
+        Long productId;
+        String content;
+    }
+
+    private static class ChatResp {
+        Long senderId;
+        Long productId;
+        String content;
+
+        ChatResp(Long senderId, Long productId, String content) {
+            this.senderId = senderId;
+            this.productId = productId;
+            this.content = content;
+        }
+    }
 }
 
 ===== FILE: rdc-message-service\src\main\webapp\WEB-INF\web.xml =====
@@ -3120,6 +4151,14 @@ public interface SensitiveWordMapper {
         <param-value>com.klei.message</param-value>
     </context-param>
 
+    <filter>
+        <filter-name>corsFilter</filter-name>
+        <filter-class>com.klei.common.filter.CorsFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>corsFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
     <filter>
         <filter-name>encodingFilter</filter-name>
         <filter-class>com.klei.common.filter.EncodingFilter</filter-class>
@@ -3188,6 +4227,18 @@ public interface SensitiveWordMapper {
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.klei</groupId>
+            <artifactId>rdc-product-service</artifactId>
+            <version>${project.version}</version>
+            <classifier>classes</classifier>
+        </dependency>
+        <dependency>
+            <groupId>com.klei</groupId>
+            <artifactId>rdc-message-service</artifactId>
+            <version>${project.version}</version>
+            <classifier>classes</classifier>
+        </dependency>
     </dependencies>
 
     <build>
@@ -3200,6 +4251,16 @@ public interface SensitiveWordMapper {
         </plugins>
     </build>
 </project>
+
+===== FILE: rdc-order-service\src\main\java\com\klei\order\dto\OrderCreateDTO.java =====
+package com.klei.order.dto;
+
+import lombok.Data;
+
+@Data
+public class OrderCreateDTO {
+    private Long productId;
+}
 
 ===== FILE: rdc-order-service\src\main\java\com\klei\order\entity\Order.java =====
 package com.klei.order.entity;
@@ -3353,6 +4414,476 @@ public interface WalletRecordMapper {
     long insert(Long userId, WalletRecordType type, BigDecimal amount, BigDecimal balanceAfter, String remark);
 }
 
+===== FILE: rdc-order-service\src\main\java\com\klei\order\service\OrderService.java =====
+package com.klei.order.service;
+
+import com.klei.order.dto.OrderCreateDTO;
+import com.klei.order.entity.Order;
+import java.util.List;
+
+public interface OrderService {
+
+    String createOrder(Long buyerId, OrderCreateDTO dto);
+
+    void cancelOrder(Long buyerId, Long orderId);
+
+    void completeOrder(Long buyerId, Long orderId);
+
+    List<Order> findMyOrders(Long buyerId);
+
+    List<Order> findMySells(Long sellerId);
+}
+
+===== FILE: rdc-order-service\src\main\java\com\klei\order\service\WalletService.java =====
+package com.klei.order.service;
+
+import com.klei.order.vo.WalletRecordVO;
+import com.klei.order.vo.WalletVO;
+import java.math.BigDecimal;
+import java.util.List;
+
+public interface WalletService {
+
+    void recharge(Long userId, BigDecimal amount);
+
+    WalletVO getBalance(Long userId);
+
+    List<WalletRecordVO> getRecords(Long userId);
+}
+
+===== FILE: rdc-order-service\src\main\java\com\klei\order\service\impl\OrderServiceImpl.java =====
+package com.klei.order.service.impl;
+
+import com.klei.common.annotation.Autowired;
+import com.klei.common.annotation.Component;
+import com.klei.common.annotation.Transactional;
+import com.klei.common.exception.BusinessException;
+import com.klei.common.mq.MqSender;
+import com.klei.common.utils.RedisUtil;
+import com.klei.order.dto.OrderCreateDTO;
+import com.klei.order.entity.Order;
+import com.klei.order.entity.Wallet;
+import com.klei.order.entity.enums.OrderStatus;
+import com.klei.order.entity.enums.WalletRecordType;
+import com.klei.order.mapper.OrderMapper;
+import com.klei.order.mapper.WalletMapper;
+import com.klei.order.mapper.WalletRecordMapper;
+import com.klei.order.service.OrderService;
+import com.klei.product.entity.Product;
+import com.klei.product.entity.enums.ProductStatus;
+import com.klei.product.mapper.ProductMapper;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.UUID;
+
+@Component
+public class OrderServiceImpl implements OrderService {
+
+    @Autowired
+    private OrderMapper orderMapper;
+    @Autowired
+    private ProductMapper productMapper;
+    @Autowired
+    private WalletMapper walletMapper;
+    @Autowired
+    private WalletRecordMapper walletRecordMapper;
+
+    @Override
+    @Transactional
+    public String createOrder(Long buyerId, OrderCreateDTO dto) {
+        String lockKey = "lock:product:" + dto.getProductId();
+        String lockValue = buyerId + ":" + System.currentTimeMillis();
+        boolean locked = RedisUtil.setnxex(lockKey, lockValue, 10);
+        if (!locked) {
+            throw new BusinessException("鍟嗗搧姝ｅ湪琚叾浠栫敤鎴疯喘涔帮紝璇风◢鍚庡啀璇?);
+        }
+
+        try {
+            Product product = productMapper.findById(dto.getProductId());
+            if (product == null || product.getIsDeleted() == 1) {
+                throw new BusinessException("鍟嗗搧涓嶅瓨鍦?);
+            }
+            if (!ProductStatus.PUBLISHED.equals(product.getStatus())) {
+                throw new BusinessException("鍟嗗搧宸蹭笅鏋舵垨宸插敭鍑?);
+            }
+            if (product.getStock() <= 0) {
+                throw new BusinessException("鍟嗗搧搴撳瓨涓嶈冻");
+            }
+            if (product.getUserId().equals(buyerId)) {
+                throw new BusinessException("涓嶈兘璐拱鑷繁鐨勫晢鍝?);
+            }
+
+            Wallet buyerWallet = walletMapper.findByUserId(buyerId);
+            if (buyerWallet == null) {
+                throw new BusinessException("璇峰厛鍏呭€?);
+            }
+            if (buyerWallet.getBalance().compareTo(product.getPrice()) < 0) {
+                throw new BusinessException("浣欓涓嶈冻");
+            }
+
+            int rows = productMapper.decrementStock(product.getId(), product.getVersion());
+            if (rows == 0) {
+                throw new BusinessException("鍟嗗搧宸茶浠栦汉璐拱");
+            }
+
+            // 鎵ｄ拱瀹堕挶骞惰璐?
+            BigDecimal buyerNewBalance = buyerWallet.getBalance().subtract(product.getPrice());
+            walletMapper.updateBalance(buyerNewBalance, buyerWallet.getId());
+            walletRecordMapper.insert(buyerId, WalletRecordType.PAYMENT, product.getPrice(), buyerNewBalance, "璐拱鍟嗗搧鏀嚭");
+
+            // 缁欏崠瀹跺姞閽卞苟璁拌处
+            Wallet sellerWallet = walletMapper.findByUserId(product.getUserId());
+            if (sellerWallet == null) {
+                walletMapper.insert(product.getUserId());
+                sellerWallet = walletMapper.findByUserId(product.getUserId());
+            }
+            BigDecimal sellerNewBalance = sellerWallet.getBalance().add(product.getPrice());
+            walletMapper.updateBalance(sellerNewBalance, sellerWallet.getId());
+            walletRecordMapper.insert(product.getUserId(), WalletRecordType.PAYMENT, product.getPrice(), sellerNewBalance, "鍟嗗搧閿€鍞敹鍏?);
+
+            String orderNo = "ORD" + System.currentTimeMillis() + UUID.randomUUID().toString().substring(0, 4).toUpperCase();
+            orderMapper.insert(orderNo, buyerId, product.getUserId(), product.getId(), product.getPrice(), OrderStatus.PAID);
+            productMapper.updateStatus(ProductStatus.SOLD, null, product.getId());
+
+            // 鏀逛负 MQ 寮傛鍙戦€佹秷鎭?
+            MqSender.sendMessage(product.getUserId(), "PRODUCT_SOLD",
+                    "鎮ㄧ殑鍟嗗搧銆? + product.getTitle() + "銆戝凡琚喘涔帮紝璁㈠崟鍙凤細" + orderNo);
+
+            return orderNo;
+        } finally {
+            // 淇锛氬厛姣斿 value锛岄槻姝㈣鍒犱粬浜洪攣
+            String currentValue = RedisUtil.get(lockKey);
+            if (lockValue.equals(currentValue)) {
+                RedisUtil.del(lockKey);
+            }
+        }
+    }
+
+    @Override
+    @Transactional
+    public void cancelOrder(Long buyerId, Long orderId) {
+        Order order = orderMapper.findById(orderId);
+        if (order == null || order.getIsDeleted() == 1) {
+            throw new BusinessException("璁㈠崟涓嶅瓨鍦?);
+        }
+        if (!order.getBuyerId().equals(buyerId)) {
+            throw new BusinessException("鏃犳潈鎿嶄綔璇ヨ鍗?);
+        }
+        if (!OrderStatus.PAID.equals(order.getStatus())) {
+            throw new BusinessException("璁㈠崟鐘舵€佷笉鍏佽鍙栨秷");
+        }
+
+        // 閫€涔板閽?
+        Wallet buyerWallet = walletMapper.findByUserId(buyerId);
+        BigDecimal buyerNewBalance = buyerWallet.getBalance().add(order.getPrice());
+        walletMapper.updateBalance(buyerNewBalance, buyerWallet.getId());
+        walletRecordMapper.insert(buyerId, WalletRecordType.REFUND, order.getPrice(), buyerNewBalance, "璁㈠崟鍙栨秷閫€娆?);
+
+        // 鎵ｅ崠瀹堕挶
+        Wallet sellerWallet = walletMapper.findByUserId(order.getSellerId());
+        if (sellerWallet != null) {
+            BigDecimal sellerNewBalance = sellerWallet.getBalance().subtract(order.getPrice());
+            walletMapper.updateBalance(sellerNewBalance, sellerWallet.getId());
+            walletRecordMapper.insert(order.getSellerId(), WalletRecordType.PAYMENT, order.getPrice(), sellerNewBalance, "璁㈠崟鍙栨秷鎵ｅ洖");
+        }
+
+        // 鎭㈠搴撳瓨
+        productMapper.incrementStock(order.getProductId());
+
+        orderMapper.updateStatus(OrderStatus.CANCELLED, orderId);
+        productMapper.updateStatus(ProductStatus.PUBLISHED, null, order.getProductId());
+    }
+
+    @Override
+    @Transactional
+    public void completeOrder(Long buyerId, Long orderId) {
+        Order order = orderMapper.findById(orderId);
+        if (order == null || order.getIsDeleted() == 1) {
+            throw new BusinessException("璁㈠崟涓嶅瓨鍦?);
+        }
+        if (!order.getBuyerId().equals(buyerId)) {
+            throw new BusinessException("鏃犳潈鎿嶄綔璇ヨ鍗?);
+        }
+        if (!OrderStatus.PAID.equals(order.getStatus())) {
+            throw new BusinessException("璁㈠崟鐘舵€佷笉鍏佽纭鏀惰揣");
+        }
+
+        orderMapper.updateStatus(OrderStatus.COMPLETED, orderId);
+    }
+
+    @Override
+    public List<Order> findMyOrders(Long buyerId) {
+        return orderMapper.findByBuyerId(buyerId);
+    }
+
+    @Override
+    public List<Order> findMySells(Long sellerId) {
+        return orderMapper.findBySellerId(sellerId);
+    }
+}
+
+===== FILE: rdc-order-service\src\main\java\com\klei\order\service\impl\WalletServiceImpl.java =====
+package com.klei.order.service.impl;
+
+import com.klei.common.annotation.Autowired;
+import com.klei.common.annotation.Component;
+import com.klei.common.annotation.Transactional;
+import com.klei.common.exception.BusinessException;
+import com.klei.order.entity.Wallet;
+import com.klei.order.entity.WalletRecord;
+import com.klei.order.entity.enums.WalletRecordType;
+import com.klei.order.mapper.WalletMapper;
+import com.klei.order.mapper.WalletRecordMapper;
+import com.klei.order.service.WalletService;
+import com.klei.order.vo.WalletRecordVO;
+import com.klei.order.vo.WalletVO;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Component
+public class WalletServiceImpl implements WalletService {
+
+    @Autowired
+    private WalletMapper walletMapper;
+    @Autowired
+    private WalletRecordMapper walletRecordMapper;
+
+    @Override
+    @Transactional
+    public void recharge(Long userId, BigDecimal amount) {
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new BusinessException("鍏呭€奸噾棰濆繀椤诲ぇ浜?");
+        }
+
+        Wallet wallet = walletMapper.findByUserId(userId);
+        if (wallet == null) {
+            walletMapper.insert(userId);
+            wallet = walletMapper.findByUserId(userId);
+        }
+
+        BigDecimal newBalance = wallet.getBalance().add(amount);
+        walletMapper.updateBalance(newBalance, wallet.getId());
+
+        walletRecordMapper.insert(userId, WalletRecordType.RECHARGE, amount, newBalance, "浣欓鍏呭€?);
+    }
+
+    @Override
+    public WalletVO getBalance(Long userId) {
+        Wallet wallet = walletMapper.findByUserId(userId);
+        if (wallet == null) {
+            walletMapper.insert(userId);
+            wallet = walletMapper.findByUserId(userId);
+        }
+
+        WalletVO vo = new WalletVO();
+        vo.setUserId(userId);
+        vo.setBalance(wallet.getBalance());
+        return vo;
+    }
+
+    @Override
+    public List<WalletRecordVO> getRecords(Long userId) {
+        return walletRecordMapper.findByUserId(userId).stream()
+                .map(this::toVO).collect(Collectors.toList());
+    }
+
+    private WalletRecordVO toVO(WalletRecord r) {
+        WalletRecordVO vo = new WalletRecordVO();
+        vo.setId(r.getId());
+        vo.setType(r.getType());
+        vo.setAmount(r.getAmount());
+        vo.setBalanceAfter(r.getBalanceAfter());
+        vo.setRemark(r.getRemark());
+        vo.setCreatedAt(r.getCreatedAt());
+        return vo;
+    }
+}
+
+===== FILE: rdc-order-service\src\main\java\com\klei\order\servlet\OrderServlet.java =====
+package com.klei.order.servlet;
+
+import com.google.gson.reflect.TypeToken;
+import com.klei.common.ioc.IoCContainer;
+import com.klei.common.servlet.BaseServlet;
+import com.klei.common.utils.AuthUtil;
+import com.klei.common.utils.Result;
+import com.klei.order.dto.OrderCreateDTO;
+import com.klei.order.service.OrderService;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.Map;
+
+@WebServlet(urlPatterns = {"/order/*"})
+public class OrderServlet extends BaseServlet {
+
+    private OrderService orderService;
+    private final Type mapType = new TypeToken<Map<String, String>>() {}.getType();
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        this.orderService = IoCContainer.getBean(OrderService.class);
+    }
+
+    private void create(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long buyerId = AuthUtil.getUserId(req);
+        OrderCreateDTO dto = gson.fromJson(req.getReader(), OrderCreateDTO.class);
+        String orderNo = orderService.createOrder(buyerId, dto);
+        writeJson(resp, Result.ok(orderNo));
+    }
+
+    private void cancel(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long buyerId = AuthUtil.getUserId(req);
+        Map<String, String> map = gson.fromJson(req.getReader(), mapType);
+        Long orderId = Long.valueOf(map.get("orderId"));
+        orderService.cancelOrder(buyerId, orderId);
+        writeJson(resp, Result.ok());
+    }
+
+    private void complete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long buyerId = AuthUtil.getUserId(req);
+        Map<String, String> map = gson.fromJson(req.getReader(), mapType);
+        Long orderId = Long.valueOf(map.get("orderId"));
+        orderService.completeOrder(buyerId, orderId);
+        writeJson(resp, Result.ok());
+    }
+
+    private void myOrders(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long buyerId = AuthUtil.getUserId(req);
+        writeJson(resp, Result.ok(orderService.findMyOrders(buyerId)));
+    }
+
+    private void mySells(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long sellerId = AuthUtil.getUserId(req);
+        writeJson(resp, Result.ok(orderService.findMySells(sellerId)));
+    }
+
+    private void detail(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long userId = AuthUtil.getUserId(req);
+        Long orderId = Long.valueOf(req.getParameter("orderId"));
+        com.klei.order.mapper.OrderMapper orderMapper = com.klei.common.ioc.IoCContainer.getBean(com.klei.order.mapper.OrderMapper.class);
+        if (orderMapper == null) {
+            orderMapper = com.klei.common.mapper.MapperProxyFactory.getMapper(com.klei.order.mapper.OrderMapper.class);
+        }
+        com.klei.order.entity.Order order = orderMapper.findById(orderId);
+        if (order == null || order.getIsDeleted() == 1) {
+            throw new com.klei.common.exception.BusinessException("璁㈠崟涓嶅瓨鍦?);
+        }
+        if (!order.getBuyerId().equals(userId) && !order.getSellerId().equals(userId)) {
+            throw new com.klei.common.exception.BusinessException("鏃犳潈鏌ョ湅璇ヨ鍗?);
+        }
+        writeJson(resp, Result.ok(order));
+    }
+}
+
+===== FILE: rdc-order-service\src\main\java\com\klei\order\servlet\WalletServlet.java =====
+package com.klei.order.servlet;
+
+import com.google.gson.reflect.TypeToken;
+import com.klei.common.ioc.IoCContainer;
+import com.klei.common.servlet.BaseServlet;
+import com.klei.common.utils.AuthUtil;
+import com.klei.common.utils.Result;
+import com.klei.order.service.WalletService;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.math.BigDecimal;
+import java.util.Map;
+
+@WebServlet(urlPatterns = {"/wallet/*"})
+public class WalletServlet extends BaseServlet {
+
+    private WalletService walletService;
+    private final Type mapType = new TypeToken<Map<String, String>>() {}.getType();
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        this.walletService = IoCContainer.getBean(WalletService.class);
+    }
+
+    private void recharge(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long userId = AuthUtil.getUserId(req);
+        Map<String, String> map = gson.fromJson(req.getReader(), mapType);
+        BigDecimal amount = new BigDecimal(map.get("amount"));
+        walletService.recharge(userId, amount);
+        writeJson(resp, Result.ok());
+    }
+
+    private void balance(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long userId = AuthUtil.getUserId(req);
+        writeJson(resp, Result.ok(walletService.getBalance(userId)));
+    }
+
+    private void records(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long userId = AuthUtil.getUserId(req);
+        writeJson(resp, Result.ok(walletService.getRecords(userId)));
+    }
+}
+
+===== FILE: rdc-order-service\src\main\java\com\klei\order\vo\OrderVO.java =====
+package com.klei.order.vo;
+
+import com.klei.order.entity.enums.OrderStatus;
+import lombok.Data;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Data
+public class OrderVO {
+    private Long id;
+    private String orderNo;
+    private Long buyerId;
+    private Long sellerId;
+    private Long productId;
+    private BigDecimal price;
+    private OrderStatus status;
+    private LocalDateTime createdAt;
+}
+
+===== FILE: rdc-order-service\src\main\java\com\klei\order\vo\WalletRecordVO.java =====
+package com.klei.order.vo;
+
+import com.klei.order.entity.enums.WalletRecordType;
+import lombok.Data;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Data
+public class WalletRecordVO {
+    private Long id;
+    private WalletRecordType type;
+    private BigDecimal amount;
+    private BigDecimal balanceAfter;
+    private String remark;
+    private LocalDateTime createdAt;
+}
+
+===== FILE: rdc-order-service\src\main\java\com\klei\order\vo\WalletVO.java =====
+package com.klei.order.vo;
+
+import lombok.Data;
+import java.math.BigDecimal;
+
+@Data
+public class WalletVO {
+    private Long userId;
+    private BigDecimal balance;
+}
+
 ===== FILE: rdc-order-service\src\main\webapp\WEB-INF\web.xml =====
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
@@ -3365,6 +4896,14 @@ public interface WalletRecordMapper {
         <param-value>com.klei.order</param-value>
     </context-param>
 
+    <filter>
+        <filter-name>corsFilter</filter-name>
+        <filter-class>com.klei.common.filter.CorsFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>corsFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
     <filter>
         <filter-name>encodingFilter</filter-name>
         <filter-class>com.klei.common.filter.EncodingFilter</filter-class>
@@ -3433,6 +4972,12 @@ public interface WalletRecordMapper {
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.klei</groupId>
+            <artifactId>rdc-message-service</artifactId>
+            <version>${project.version}</version>
+            <classifier>classes</classifier>
+        </dependency>
     </dependencies>
 
     <build>
@@ -3446,6 +4991,23 @@ public interface WalletRecordMapper {
     </build>
 </project>
 
+===== FILE: rdc-product-service\src\main\java\com\klei\product\dto\ProductPublishDTO.java =====
+package com.klei.product.dto;
+
+import lombok.Data;
+import java.math.BigDecimal;
+import java.util.List;
+
+@Data
+public class ProductPublishDTO {
+    private String title;
+    private String description;
+    private BigDecimal price;
+    private Integer stock;
+    private List<String> images;
+    private List<String> tags;
+}
+
 ===== FILE: rdc-product-service\src\main\java\com\klei\product\entity\Comment.java =====
 package com.klei.product.entity;
 
@@ -3456,6 +5018,7 @@ import java.time.LocalDateTime;
 public class Comment {
     private Long id;
     private Long productId;
+    private Long parentId;
     private Long userId;
     private String content;
     private Integer likeCount;
@@ -3625,6 +5188,15 @@ public interface CommentMapper {
 
     @Update("UPDATE comment SET is_deleted = 1 WHERE id = ?")
     int deleteById(Long id);
+
+    @Update("UPDATE comment SET like_count = like_count - 1 WHERE id = ? AND is_deleted = 0 AND like_count > 0")
+    int decrementLikeCount(Long id);
+
+    @Select("SELECT * FROM comment WHERE parent_id = ? AND is_deleted = 0 ORDER BY created_at ASC")
+    List<Comment> findByParentId(Long parentId);
+
+    @Insert("INSERT INTO comment (product_id, parent_id, user_id, content, like_count, is_deleted, created_at) VALUES (?, ?, ?, ?, 0, 0, NOW())")
+    long insert(Long productId, Long parentId, Long userId, String content);
 }
 
 ===== FILE: rdc-product-service\src\main\java\com\klei\product\mapper\FavoriteMapper.java =====
@@ -3654,6 +5226,8 @@ package com.klei.product.mapper;
 
 import com.klei.common.annotation.*;
 import com.klei.product.entity.Follow;
+import com.klei.product.vo.FollowVO;
+
 import java.util.List;
 
 public interface FollowMapper {
@@ -3672,6 +5246,12 @@ public interface FollowMapper {
 
     @Update("UPDATE follow SET is_deleted = 1, updated_at = NOW() WHERE user_id = ? AND follow_user_id = ?")
     int deleteByUserIdAndFollowUserId(Long userId, Long followUserId);
+
+    @Select("SELECT u.id as follow_user_id, u.nickname, u.avatar, f.created_at FROM follow f JOIN sys_user u ON f.follow_user_id = u.id WHERE f.user_id = ? AND f.is_deleted = 0 AND u.is_deleted = 0 ORDER BY f.created_at DESC")
+    List<FollowVO> findFollowsWithUser(Long userId);
+
+    @Select("SELECT u.id as follow_user_id, u.nickname, u.avatar, f.created_at FROM follow f JOIN sys_user u ON f.user_id = u.id WHERE f.follow_user_id = ? AND f.is_deleted = 0 AND u.is_deleted = 0 ORDER BY f.created_at DESC")
+    List<FollowVO> findFansWithUser(Long userId);
 }
 
 ===== FILE: rdc-product-service\src\main\java\com\klei\product\mapper\ProductImageMapper.java =====
@@ -3725,7 +5305,7 @@ public interface ProductMapper {
     @Update("UPDATE product SET title = ?, description = ?, price = ?, stock = ?, updated_at = NOW() WHERE id = ? AND is_deleted = 0")
     int updateBasic(String title, String description, BigDecimal price, Integer stock, Long id);
 
-    @Update("UPDATE product SET status = ?, reject_reason = ?, updated_at = NOW() WHERE id = ? AND is_deleted = 0")
+    @Update("UPDATE product SET status = ?, reject_reason = ?, updated_at = NOW() WHERE id = ? AND is_deleted = 0 AND status = 'PENDING'")
     int updateStatus(ProductStatus status, String rejectReason, Long id);
 
     @Update("UPDATE product SET view_count = view_count + 1, updated_at = NOW() WHERE id = ? AND is_deleted = 0")
@@ -3737,8 +5317,27 @@ public interface ProductMapper {
     @Update("UPDATE product SET stock = stock - 1, version = version + 1, updated_at = NOW() WHERE id = ? AND stock > 0 AND version = ? AND is_deleted = 0")
     int decrementStock(Long id, Integer version);
 
+    @Update("UPDATE product SET stock = stock + 1, version = version + 1, updated_at = NOW() WHERE id = ? AND is_deleted = 0")
+    int incrementStock(Long id);
+
     @Update("UPDATE product SET is_deleted = 1, updated_at = NOW() WHERE id = ?")
     int deleteById(Long id);
+
+    // 鏇濆厜鎶戝埗锛歷iew_count > 1000 鍚庢潈閲嶅闀块檷涓?1/10锛岄槻姝㈢儹闂ㄥ晢鍝佹案杩滈湼姒?
+    @Select("SELECT p.* FROM product p LEFT JOIN sys_user u ON p.user_id = u.id WHERE p.status = 'PUBLISHED' AND p.is_deleted = 0 ORDER BY (p.exposure_weight * 10 + CASE WHEN p.view_count <= 1000 THEN p.view_count ELSE 1000 + (p.view_count - 1000) / 10 END + IFNULL(u.vip_level, 0) * 50) DESC LIMIT ?, ?")
+    List<Product> findPublishedPage(int offset, int size);
+
+    @Select("SELECT COUNT(*) FROM product WHERE status = 'PUBLISHED' AND is_deleted = 0")
+    long countPublished();
+
+    @Select("SELECT p.* FROM product p JOIN product_tag pt ON p.id = pt.product_id LEFT JOIN sys_user u ON p.user_id = u.id WHERE pt.tag_id = ? AND p.status = 'PUBLISHED' AND p.is_deleted = 0 AND pt.is_deleted = 0 ORDER BY (p.exposure_weight * 10 + CASE WHEN p.view_count <= 1000 THEN p.view_count ELSE 1000 + (p.view_count - 1000) / 10 END + IFNULL(u.vip_level, 0) * 50) DESC LIMIT ?, ?")
+    List<Product> findByTagPage(Long tagId, int offset, int size);
+
+    @Select("SELECT COUNT(*) FROM product p JOIN product_tag pt ON p.id = pt.product_id WHERE pt.tag_id = ? AND p.status = 'PUBLISHED' AND p.is_deleted = 0 AND pt.is_deleted = 0")
+    long countByTag(Long tagId);
+
+    @Select("SELECT * FROM product WHERE (title LIKE ? OR description LIKE ?) AND status = 'PUBLISHED' AND is_deleted = 0 ORDER BY created_at DESC")
+    List<Product> search(String titlePattern, String descPattern);
 }
 
 ===== FILE: rdc-product-service\src\main\java\com\klei\product\mapper\ProductTagMapper.java =====
@@ -3788,6 +5387,915 @@ public interface TagMapper {
     int deleteById(Long id);
 }
 
+===== FILE: rdc-product-service\src\main\java\com\klei\product\service\CommentService.java =====
+package com.klei.product.service;
+
+import com.klei.product.entity.Comment;
+import com.klei.product.vo.CommentVO;
+import java.util.List;
+
+public interface CommentService {
+
+    long addComment(Long productId, Long userId, String content);
+
+    long reply(Long productId, Long parentId, Long userId, String content);
+
+    void deleteComment(Long commentId, Long userId);
+
+    void toggleLike(Long commentId, Long userId);
+
+    List<Comment> findByProductId(Long productId);
+
+    List<CommentVO> findTreeByProductId(Long productId);
+}
+
+===== FILE: rdc-product-service\src\main\java\com\klei\product\service\FavoriteService.java =====
+package com.klei.product.service;
+
+import com.klei.product.vo.FavoriteVO;
+import java.util.List;
+
+public interface FavoriteService {
+
+    void toggleFavorite(Long userId, Long productId);
+
+    List<FavoriteVO> findMyFavorites(Long userId);
+}
+
+===== FILE: rdc-product-service\src\main\java\com\klei\product\service\FollowService.java =====
+package com.klei.product.service;
+
+import com.klei.product.vo.FollowVO;
+import java.util.List;
+
+public interface FollowService {
+
+    void toggleFollow(Long userId, Long followUserId);
+
+    List<FollowVO> findMyFollows(Long userId);
+
+    List<FollowVO> findMyFans(Long userId);
+}
+
+===== FILE: rdc-product-service\src\main\java\com\klei\product\service\ProductService.java =====
+package com.klei.product.service;
+
+import com.klei.product.dto.ProductPublishDTO;
+import com.klei.product.entity.Product;
+import com.klei.product.vo.PageResult;
+import com.klei.product.vo.ProductDetailVO;
+import java.util.List;
+
+public interface ProductService {
+
+    long publish(Long userId, ProductPublishDTO dto);
+
+    void edit(Long userId, Long productId, ProductPublishDTO dto);
+
+    void delete(Long userId, Long productId);
+
+    List<Product> myProducts(Long userId);
+
+    ProductDetailVO detail(Long productId, Long userId);
+
+    PageResult<Product> list(int page, int size, Long tagId);
+
+    List<Product> search(String keyword);
+}
+
+===== FILE: rdc-product-service\src\main\java\com\klei\product\service\impl\CommentServiceImpl.java =====
+package com.klei.product.service.impl;
+
+import com.klei.common.annotation.Autowired;
+import com.klei.common.annotation.Component;
+import com.klei.common.annotation.Transactional;
+import com.klei.common.exception.BusinessException;
+import com.klei.product.entity.Comment;
+import com.klei.product.entity.CommentLikes;
+import com.klei.product.mapper.CommentLikesMapper;
+import com.klei.product.mapper.CommentMapper;
+import com.klei.product.service.CommentService;
+import com.klei.product.vo.CommentVO;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Component
+public class CommentServiceImpl implements CommentService {
+
+    @Autowired
+    private CommentMapper commentMapper;
+    @Autowired
+    private CommentLikesMapper commentLikesMapper;
+
+    @Override
+    public long addComment(Long productId, Long userId, String content) {
+        if (content == null || content.trim().isEmpty()) {
+            throw new BusinessException("璇勮鍐呭涓嶈兘涓虹┖");
+        }
+        return commentMapper.insert(productId, null, userId, content.trim());
+    }
+
+    @Override
+    public long reply(Long productId, Long parentId, Long userId, String content) {
+        if (content == null || content.trim().isEmpty()) {
+            throw new BusinessException("鍥炲鍐呭涓嶈兘涓虹┖");
+        }
+        if (parentId == null) {
+            throw new BusinessException("鍥炲鐩爣涓嶈兘涓虹┖");
+        }
+        Comment parent = commentMapper.findById(parentId);
+        if (parent == null || parent.getIsDeleted() == 1) {
+            throw new BusinessException("鐩爣璇勮涓嶅瓨鍦?);
+        }
+        return commentMapper.insert(productId, parentId, userId, content.trim());
+    }
+
+    @Override
+    public void deleteComment(Long commentId, Long userId) {
+        Comment comment = commentMapper.findById(commentId);
+        if (comment == null || comment.getIsDeleted() == 1) {
+            throw new BusinessException("璇勮涓嶅瓨鍦?);
+        }
+        if (!comment.getUserId().equals(userId)) {
+            throw new BusinessException("鏃犳潈鍒犻櫎浠栦汉璇勮");
+        }
+        commentMapper.deleteById(commentId);
+    }
+
+    @Override
+    @Transactional
+    public void toggleLike(Long commentId, Long userId) {
+        Comment comment = commentMapper.findById(commentId);
+        if (comment == null || comment.getIsDeleted() == 1) {
+            throw new BusinessException("璇勮涓嶅瓨鍦?);
+        }
+
+        CommentLikes like = commentLikesMapper.findByUserIdAndCommentId(userId, commentId);
+        if (like == null || like.getIsDeleted() == 1) {
+            commentLikesMapper.insert(userId, commentId);
+            commentMapper.incrementLikeCount(commentId);
+        } else {
+            commentLikesMapper.deleteByUserIdAndCommentId(userId, commentId);
+            commentMapper.decrementLikeCount(commentId);
+        }
+    }
+
+    @Override
+    public List<Comment> findByProductId(Long productId) {
+        return commentMapper.findByProductId(productId);
+    }
+
+    @Override
+    public List<CommentVO> findTreeByProductId(Long productId) {
+        List<Comment> all = commentMapper.findByProductId(productId);
+        List<CommentVO> top = all.stream()
+                .filter(c -> c.getParentId() == null)
+                .map(this::toVO)
+                .collect(Collectors.toList());
+
+        for (CommentVO vo : top) {
+            vo.setChildren(all.stream()
+                    .filter(c -> vo.getId().equals(c.getParentId()))
+                    .map(this::toVO)
+                    .collect(Collectors.toList()));
+        }
+        return top;
+    }
+
+    private CommentVO toVO(Comment c) {
+        CommentVO vo = new CommentVO();
+        vo.setId(c.getId());
+        vo.setProductId(c.getProductId());
+        vo.setParentId(c.getParentId());
+        vo.setUserId(c.getUserId());
+        vo.setContent(c.getContent());
+        vo.setLikeCount(c.getLikeCount());
+        vo.setCreatedAt(c.getCreatedAt());
+        return vo;
+    }
+}
+
+===== FILE: rdc-product-service\src\main\java\com\klei\product\service\impl\FavoriteServiceImpl.java =====
+package com.klei.product.service.impl;
+
+import com.klei.common.annotation.Autowired;
+import com.klei.common.annotation.Component;
+import com.klei.common.annotation.Transactional;
+import com.klei.common.exception.BusinessException;
+import com.klei.product.entity.Favorite;
+import com.klei.product.entity.Product;
+import com.klei.product.entity.ProductImage;
+import com.klei.product.mapper.FavoriteMapper;
+import com.klei.product.mapper.ProductImageMapper;
+import com.klei.product.mapper.ProductMapper;
+import com.klei.product.service.FavoriteService;
+import com.klei.product.vo.FavoriteVO;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Component
+public class FavoriteServiceImpl implements FavoriteService {
+
+    @Autowired
+    private FavoriteMapper favoriteMapper;
+    @Autowired
+    private ProductMapper productMapper;
+    @Autowired
+    private ProductImageMapper productImageMapper;
+
+    @Override
+    @Transactional
+    public void toggleFavorite(Long userId, Long productId) {
+        Product product = productMapper.findById(productId);
+        if (product == null || product.getIsDeleted() == 1) {
+            throw new BusinessException("鍟嗗搧涓嶅瓨鍦?);
+        }
+
+        Favorite fav = favoriteMapper.findByUserIdAndProductId(userId, productId);
+        if (fav == null || fav.getIsDeleted() == 1) {
+            favoriteMapper.insert(userId, productId);
+        } else {
+            favoriteMapper.deleteByUserIdAndProductId(userId, productId);
+        }
+    }
+
+    @Override
+    public List<FavoriteVO> findMyFavorites(Long userId) {
+        List<Favorite> list = favoriteMapper.findByUserId(userId);
+        List<FavoriteVO> result = new ArrayList<>();
+
+        for (Favorite f : list) {
+            Product p = productMapper.findById(f.getProductId());
+            if (p == null || p.getIsDeleted() == 1) {
+                continue;
+            }
+
+            FavoriteVO vo = new FavoriteVO();
+            vo.setProductId(f.getProductId());
+            vo.setProductTitle(p.getTitle());
+            vo.setProductPrice(p.getPrice());
+
+            List<ProductImage> imgs = productImageMapper.findByProductId(p.getId());
+            vo.setProductImage(imgs.isEmpty() ? null : imgs.get(0).getImageUrl());
+            vo.setCreatedAt(f.getCreatedAt());
+
+            result.add(vo);
+        }
+        return result;
+    }
+}
+
+===== FILE: rdc-product-service\src\main\java\com\klei\product\service\impl\FollowServiceImpl.java =====
+package com.klei.product.service.impl;
+
+import com.klei.common.annotation.Autowired;
+import com.klei.common.annotation.Component;
+import com.klei.common.annotation.Transactional;
+import com.klei.common.exception.BusinessException;
+import com.klei.product.entity.Follow;
+import com.klei.product.mapper.FollowMapper;
+import com.klei.product.service.FollowService;
+import com.klei.product.vo.FollowVO;
+
+import java.util.List;
+
+@Component
+public class FollowServiceImpl implements FollowService {
+
+    @Autowired
+    private FollowMapper followMapper;
+
+    @Override
+    @Transactional
+    public void toggleFollow(Long userId, Long followUserId) {
+        if (userId.equals(followUserId)) {
+            throw new BusinessException("涓嶈兘鍏虫敞鑷繁");
+        }
+
+        Follow follow = followMapper.findByUserIdAndFollowUserId(userId, followUserId);
+        if (follow == null || follow.getIsDeleted() == 1) {
+            followMapper.insert(userId, followUserId);
+        } else {
+            followMapper.deleteByUserIdAndFollowUserId(userId, followUserId);
+        }
+    }
+
+    @Override
+    public List<FollowVO> findMyFollows(Long userId) {
+        return followMapper.findFollowsWithUser(userId);
+    }
+
+    @Override
+    public List<FollowVO> findMyFans(Long userId) {
+        return followMapper.findFansWithUser(userId);
+    }
+}
+
+===== FILE: rdc-product-service\src\main\java\com\klei\product\service\impl\ProductServiceImpl.java =====
+package com.klei.product.service.impl;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.klei.common.annotation.Autowired;
+import com.klei.common.annotation.Component;
+import com.klei.common.annotation.Transactional;
+import com.klei.common.exception.BusinessException;
+import com.klei.common.mq.MqSender;
+import com.klei.common.utils.RedisUtil;
+import com.klei.product.dto.ProductPublishDTO;
+import com.klei.product.entity.Follow;
+import com.klei.product.entity.Product;
+import com.klei.product.entity.ProductImage;
+import com.klei.product.entity.Tag;
+import com.klei.product.entity.enums.ProductStatus;
+import com.klei.product.mapper.*;
+import com.klei.product.service.ProductService;
+import com.klei.product.vo.PageResult;
+import com.klei.product.vo.ProductDetailVO;
+
+import java.lang.reflect.Type;
+import java.util.List;
+
+@Component
+public class ProductServiceImpl implements ProductService {
+
+    @Autowired
+    private ProductMapper productMapper;
+    @Autowired
+    private ProductImageMapper productImageMapper;
+    @Autowired
+    private ProductTagMapper productTagMapper;
+    @Autowired
+    private TagMapper tagMapper;
+    @Autowired
+    private FollowMapper followMapper;
+
+    private final Gson gson = new Gson();
+    private static final int LIST_CACHE_SECONDS = 300;
+    private static final Type PAGE_TYPE = new TypeToken<PageResult<Product>>() {}.getType();
+
+    @Override
+    @Transactional
+    public long publish(Long userId, ProductPublishDTO dto) {
+        long productId = productMapper.insert(
+                userId,
+                dto.getTitle(),
+                dto.getDescription(),
+                dto.getPrice(),
+                dto.getStock() == null ? 1 : dto.getStock(),
+                ProductStatus.PENDING
+        );
+
+        if (dto.getImages() != null) {
+            int sort = 0;
+            for (String url : dto.getImages()) {
+                productImageMapper.insert(productId, url, sort++);
+            }
+        }
+
+        if (dto.getTags() != null) {
+            for (String tagName : dto.getTags()) {
+                bindTag(productId, tagName);
+            }
+        }
+
+        List<Follow> fans = followMapper.findByFollowUserId(userId);
+        if (fans != null) {
+            for (Follow fan : fans) {
+                // 鏀逛负 MQ 寮傛鍙戦€?
+                MqSender.sendMessage(fan.getUserId(), "FOLLOW_NEW_PRODUCT",
+                        "鎮ㄥ叧娉ㄧ殑浜哄彂甯冧簡鏂板晢鍝併€? + dto.getTitle() + "銆?);
+            }
+        }
+
+        // 鍙戝竷鏂板晢鍝佸悗娓呭垪琛ㄧ紦瀛?
+        clearListCache();
+
+        return productId;
+    }
+
+    @Override
+    @Transactional
+    public void edit(Long userId, Long productId, ProductPublishDTO dto) {
+        Product product = productMapper.findById(productId);
+        if (product == null || product.getIsDeleted() == 1) {
+            throw new BusinessException("鍟嗗搧涓嶅瓨鍦?);
+        }
+        if (!product.getUserId().equals(userId)) {
+            throw new BusinessException("鏃犳潈缂栬緫璇ュ晢鍝?);
+        }
+
+        productMapper.updateBasic(dto.getTitle(), dto.getDescription(), dto.getPrice(), dto.getStock(), productId);
+
+        productImageMapper.deleteByProductId(productId);
+        if (dto.getImages() != null) {
+            int sort = 0;
+            for (String url : dto.getImages()) {
+                productImageMapper.insert(productId, url, sort++);
+            }
+        }
+
+        productTagMapper.deleteByProductId(productId);
+        if (dto.getTags() != null) {
+            for (String tagName : dto.getTags()) {
+                bindTag(productId, tagName);
+            }
+        }
+
+        if (!ProductStatus.SOLD.equals(product.getStatus())) {
+            productMapper.updateStatus(ProductStatus.PENDING, null, productId);
+        }
+
+        RedisUtil.del("product:detail:" + productId);
+        clearListCache();
+    }
+
+    @Override
+    @Transactional
+    public void delete(Long userId, Long productId) {
+        Product product = productMapper.findById(productId);
+        if (product == null || product.getIsDeleted() == 1) {
+            throw new BusinessException("鍟嗗搧涓嶅瓨鍦?);
+        }
+        if (!product.getUserId().equals(userId)) {
+            throw new BusinessException("鏃犳潈鍒犻櫎璇ュ晢鍝?);
+        }
+
+        productMapper.deleteById(productId);
+        productImageMapper.deleteByProductId(productId);
+        productTagMapper.deleteByProductId(productId);
+
+        RedisUtil.del("product:detail:" + productId);
+        clearListCache();
+    }
+
+    @Override
+    public List<Product> myProducts(Long userId) {
+        return productMapper.findByUserId(userId);
+    }
+
+    @Override
+    public ProductDetailVO detail(Long productId, Long userId) {
+        String cacheKey = "product:detail:" + productId;
+
+        boolean needInvalidate = false;
+        if (userId != null) {
+            String viewKey = "product:view:" + productId + ":" + userId;
+            if (!RedisUtil.exists(viewKey)) {
+                productMapper.incrementViewCount(productId);
+                RedisUtil.setnxex(viewKey, "1", 24 * 60 * 60);
+                needInvalidate = true;
+            }
+        } else {
+            productMapper.incrementViewCount(productId);
+            needInvalidate = true;
+        }
+
+        if (needInvalidate) {
+            RedisUtil.del(cacheKey);
+        } else {
+            String cached = RedisUtil.hget(cacheKey, "data");
+            if (cached != null) {
+                return gson.fromJson(cached, ProductDetailVO.class);
+            }
+        }
+
+        Product product = productMapper.findById(productId);
+        if (product == null || product.getIsDeleted() == 1) {
+            throw new BusinessException("鍟嗗搧涓嶅瓨鍦?);
+        }
+
+        ProductDetailVO vo = new ProductDetailVO();
+        vo.setProduct(product);
+        vo.setImages(productImageMapper.findByProductId(productId));
+        vo.setTags(productTagMapper.findTagsByProductId(productId));
+
+        RedisUtil.hset(cacheKey, "data", gson.toJson(vo));
+        return vo;
+    }
+
+    @Override
+    public PageResult<Product> list(int page, int size, Long tagId) {
+        if (page < 1) {
+            page = 1;
+        }
+        if (size < 1) {
+            size = 10;
+        }
+        int offset = (page - 1) * size;
+
+        // 鐑偣鍒楄〃缂撳瓨锛氶椤靛墠3椤?+ 鏃犳爣绛剧瓫閫夋墠缂撳瓨
+        boolean canCache = tagId == null && page <= 3;
+        String cacheKey = "product:list:page:" + page + ":size:" + size;
+
+        if (canCache) {
+            String cached = RedisUtil.get(cacheKey);
+            if (cached != null) {
+                return gson.fromJson(cached, PAGE_TYPE);
+            }
+        }
+
+        PageResult<Product> result = new PageResult<>();
+        result.setPage(page);
+        result.setSize(size);
+
+        List<Product> list;
+        long total;
+        if (tagId != null) {
+            list = productMapper.findByTagPage(tagId, offset, size);
+            total = productMapper.countByTag(tagId);
+        } else {
+            list = productMapper.findPublishedPage(offset, size);
+            total = productMapper.countPublished();
+        }
+
+        result.setList(list);
+        result.setTotal(total);
+
+        if (canCache) {
+            RedisUtil.setex(cacheKey, LIST_CACHE_SECONDS, gson.toJson(result));
+        }
+        return result;
+    }
+
+    @Override
+    public List<Product> search(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return List.of();
+        }
+        String pattern = "%" + keyword.trim() + "%";
+        return productMapper.search(pattern, pattern);
+    }
+
+    private void bindTag(long productId, String tagName) {
+        String name = tagName.trim();
+        if (name.isEmpty()) {
+            return;
+        }
+        Tag tag = tagMapper.findByName(name);
+        Long tagId;
+        if (tag == null) {
+            tagId = tagMapper.insert(name);
+        } else {
+            tagId = tag.getId();
+        }
+        productTagMapper.insert(productId, tagId);
+    }
+
+    private void clearListCache() {
+        // 绠€鍗曞仛娉曪細鍒犻櫎鍓?椤电紦瀛?
+        for (int i = 1; i <= 3; i++) {
+            for (int s : new int[]{10, 20}) {
+                RedisUtil.del("product:list:page:" + i + ":size:" + s);
+            }
+        }
+    }
+}
+
+===== FILE: rdc-product-service\src\main\java\com\klei\product\servlet\CommentServlet.java =====
+package com.klei.product.servlet;
+
+import com.google.gson.reflect.TypeToken;
+import com.klei.common.ioc.IoCContainer;
+import com.klei.common.servlet.BaseServlet;
+import com.klei.common.utils.AuthUtil;
+import com.klei.common.utils.Result;
+import com.klei.product.service.CommentService;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.Map;
+
+@WebServlet(urlPatterns = {"/comment/*"})
+public class CommentServlet extends BaseServlet {
+
+    private CommentService commentService;
+    private final Type mapType = new TypeToken<Map<String, String>>() {}.getType();
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        this.commentService = IoCContainer.getBean(CommentService.class);
+    }
+
+    private void add(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long userId = AuthUtil.getUserId(req);
+        Map<String, String> map = gson.fromJson(req.getReader(), mapType);
+        Long productId = Long.valueOf(map.get("productId"));
+        String content = map.get("content");
+        long id = commentService.addComment(productId, userId, content);
+        writeJson(resp, Result.ok(id));
+    }
+
+    private void reply(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long userId = AuthUtil.getUserId(req);
+        Map<String, String> map = gson.fromJson(req.getReader(), mapType);
+        Long productId = Long.valueOf(map.get("productId"));
+        Long parentId = Long.valueOf(map.get("parentId"));
+        String content = map.get("content");
+        long id = commentService.reply(productId, parentId, userId, content);
+        writeJson(resp, Result.ok(id));
+    }
+
+    private void delete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long userId = AuthUtil.getUserId(req);
+        Map<String, String> map = gson.fromJson(req.getReader(), mapType);
+        Long commentId = Long.valueOf(map.get("commentId"));
+        commentService.deleteComment(commentId, userId);
+        writeJson(resp, Result.ok());
+    }
+
+    private void like(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long userId = AuthUtil.getUserId(req);
+        Map<String, String> map = gson.fromJson(req.getReader(), mapType);
+        Long commentId = Long.valueOf(map.get("commentId"));
+        commentService.toggleLike(commentId, userId);
+        writeJson(resp, Result.ok());
+    }
+
+    private void list(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long productId = Long.valueOf(req.getParameter("productId"));
+        writeJson(resp, Result.ok(commentService.findTreeByProductId(productId)));
+    }
+}
+
+===== FILE: rdc-product-service\src\main\java\com\klei\product\servlet\FavoriteServlet.java =====
+package com.klei.product.servlet;
+
+import com.google.gson.reflect.TypeToken;
+import com.klei.common.ioc.IoCContainer;
+import com.klei.common.servlet.BaseServlet;
+import com.klei.common.utils.AuthUtil;
+import com.klei.common.utils.Result;
+import com.klei.product.service.FavoriteService;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.Map;
+
+@WebServlet(urlPatterns = {"/favorite/*"})
+public class FavoriteServlet extends BaseServlet {
+
+    private FavoriteService favoriteService;
+    private final Type mapType = new TypeToken<Map<String, String>>() {}.getType();
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        this.favoriteService = IoCContainer.getBean(FavoriteService.class);
+    }
+
+    private void toggle(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long userId = AuthUtil.getUserId(req);
+        Map<String, String> map = gson.fromJson(req.getReader(), mapType);
+        Long productId = Long.valueOf(map.get("productId"));
+        favoriteService.toggleFavorite(userId, productId);
+        writeJson(resp, Result.ok());
+    }
+
+    private void list(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long userId = AuthUtil.getUserId(req);
+        writeJson(resp, Result.ok(favoriteService.findMyFavorites(userId)));
+    }
+}
+
+===== FILE: rdc-product-service\src\main\java\com\klei\product\servlet\FollowServlet.java =====
+package com.klei.product.servlet;
+
+import com.google.gson.reflect.TypeToken;
+import com.klei.common.ioc.IoCContainer;
+import com.klei.common.servlet.BaseServlet;
+import com.klei.common.utils.AuthUtil;
+import com.klei.common.utils.Result;
+import com.klei.product.service.FollowService;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.Map;
+
+@WebServlet(urlPatterns = {"/follow/*"})
+public class FollowServlet extends BaseServlet {
+
+    private FollowService followService;
+    private final Type mapType = new TypeToken<Map<String, String>>() {}.getType();
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        this.followService = IoCContainer.getBean(FollowService.class);
+    }
+
+    private void toggle(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long userId = AuthUtil.getUserId(req);
+        Map<String, String> map = gson.fromJson(req.getReader(), mapType);
+        Long followUserId = Long.valueOf(map.get("followUserId"));
+        followService.toggleFollow(userId, followUserId);
+        writeJson(resp, Result.ok());
+    }
+
+    private void follows(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long userId = AuthUtil.getUserId(req);
+        writeJson(resp, Result.ok(followService.findMyFollows(userId)));
+    }
+
+    private void fans(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long userId = AuthUtil.getUserId(req);
+        writeJson(resp, Result.ok(followService.findMyFans(userId)));
+    }
+}
+
+===== FILE: rdc-product-service\src\main\java\com\klei\product\servlet\ProductServlet.java =====
+package com.klei.product.servlet;
+
+import com.google.gson.reflect.TypeToken;
+import com.klei.common.ioc.IoCContainer;
+import com.klei.common.servlet.BaseServlet;
+import com.klei.common.utils.AuthUtil;
+import com.klei.common.utils.FileUploadUtil;
+import com.klei.common.utils.Result;
+import com.klei.product.dto.ProductPublishDTO;
+import com.klei.product.service.ProductService;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+
+@WebServlet(urlPatterns = {
+        "/publish", "/edit", "/delete",
+        "/my-products", "/detail", "/list", "/search",
+        "/upload"
+})
+public class ProductServlet extends BaseServlet {
+
+    private ProductService productService;
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        this.productService = IoCContainer.getBean(ProductService.class);
+    }
+
+    private void publish(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long userId = AuthUtil.getUserId(req);
+        ProductPublishDTO dto = gson.fromJson(req.getReader(), ProductPublishDTO.class);
+        long productId = productService.publish(userId, dto);
+        writeJson(resp, Result.ok(productId));
+    }
+
+    private void edit(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long userId = AuthUtil.getUserId(req);
+        Map<String, Object> map = gson.fromJson(req.getReader(), new TypeToken<Map<String, Object>>() {}.getType());
+        Long productId = ((Number) map.remove("productId")).longValue();
+        ProductPublishDTO dto = gson.fromJson(gson.toJson(map), ProductPublishDTO.class);
+        productService.edit(userId, productId, dto);
+        writeJson(resp, Result.ok());
+    }
+
+    private void delete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long userId = AuthUtil.getUserId(req);
+        Map<String, String> map = gson.fromJson(req.getReader(), new TypeToken<Map<String, String>>() {}.getType());
+        Long productId = Long.valueOf(map.get("productId"));
+        productService.delete(userId, productId);
+        writeJson(resp, Result.ok());
+    }
+
+    private void myProducts(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long userId = AuthUtil.getUserId(req);
+        writeJson(resp, Result.ok(productService.myProducts(userId)));
+    }
+
+    private void detail(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long productId = Long.valueOf(req.getParameter("productId"));
+        Long userId = AuthUtil.getUserId(req);
+        writeJson(resp, Result.ok(productService.detail(productId, userId)));
+    }
+
+    private void list(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        int page = parseInt(req.getParameter("page"), 1);
+        int size = parseInt(req.getParameter("size"), 10);
+        Long tagId = req.getParameter("tagId") != null ? Long.valueOf(req.getParameter("tagId")) : null;
+        writeJson(resp, Result.ok(productService.list(page, size, tagId)));
+    }
+
+    private void search(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String keyword = req.getParameter("keyword");
+        writeJson(resp, Result.ok(productService.search(keyword)));
+    }
+
+    private void upload(HttpServletRequest req, HttpServletResponse resp) throws Exception {
+        List<String> paths = FileUploadUtil.uploadImages(req, "product", 10);
+        writeJson(resp, Result.ok(paths));
+    }
+
+    private int parseInt(String val, int defaultVal) {
+        if (val == null || val.isEmpty()) {
+            return defaultVal;
+        }
+        try {
+            return Integer.parseInt(val);
+        } catch (NumberFormatException e) {
+            return defaultVal;
+        }
+    }
+}
+
+===== FILE: rdc-product-service\src\main\java\com\klei\product\vo\CommentVO.java =====
+package com.klei.product.vo;
+
+import lombok.Data;
+import java.time.LocalDateTime;
+import java.util.List;
+
+@Data
+public class CommentVO {
+    private Long id;
+    private Long productId;
+    private Long parentId;
+    private Long userId;
+    private String content;
+    private Integer likeCount;
+    private LocalDateTime createdAt;
+    private List<CommentVO> children;
+}
+
+===== FILE: rdc-product-service\src\main\java\com\klei\product\vo\FavoriteVO.java =====
+package com.klei.product.vo;
+
+import lombok.Data;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Data
+public class FavoriteVO {
+    private Long productId;
+    private String productTitle;
+    private BigDecimal productPrice;
+    private String productImage;
+    private LocalDateTime createdAt;
+}
+
+===== FILE: rdc-product-service\src\main\java\com\klei\product\vo\FollowVO.java =====
+package com.klei.product.vo;
+
+import lombok.Data;
+import java.time.LocalDateTime;
+
+@Data
+public class FollowVO {
+    private Long followUserId;
+    private String nickname;
+    private String avatar;
+    private LocalDateTime createdAt;
+}
+
+===== FILE: rdc-product-service\src\main\java\com\klei\product\vo\PageResult.java =====
+package com.klei.product.vo;
+
+import lombok.Data;
+import java.util.List;
+
+@Data
+public class PageResult<T> {
+    private List<T> list;
+    private long total;
+    private int page;
+    private int size;
+}
+
+===== FILE: rdc-product-service\src\main\java\com\klei\product\vo\ProductDetailVO.java =====
+package com.klei.product.vo;
+
+import com.klei.product.entity.Product;
+import com.klei.product.entity.ProductImage;
+import com.klei.product.entity.Tag;
+import lombok.Data;
+import java.util.List;
+
+@Data
+public class ProductDetailVO {
+    private Product product;
+    private List<ProductImage> images;
+    private List<Tag> tags;
+}
+
 ===== FILE: rdc-product-service\src\main\webapp\WEB-INF\web.xml =====
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
@@ -3800,6 +6308,14 @@ public interface TagMapper {
         <param-value>com.klei.product</param-value>
     </context-param>
 
+    <filter>
+        <filter-name>corsFilter</filter-name>
+        <filter-class>com.klei.common.filter.CorsFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>corsFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
     <filter>
         <filter-name>encodingFilter</filter-name>
         <filter-class>com.klei.common.filter.EncodingFilter</filter-class>
@@ -3867,6 +6383,13 @@ public interface TagMapper {
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
+        </dependency>
+        <!-- 鏂板锛氬紩鍏?order-service 鐨?classes锛岃В鍐?Wallet 绛夊紩鐢ㄦ壘涓嶅埌鐨勯棶棰?-->
+        <dependency>
+            <groupId>com.klei</groupId>
+            <artifactId>rdc-order-service</artifactId>
+            <version>${project.version}</version>
+            <classifier>classes</classifier>
         </dependency>
     </dependencies>
 
@@ -4189,6 +6712,9 @@ public interface UserMapper {
 
     @Update("UPDATE sys_user SET email = ?, updated_at = NOW() WHERE id = ? AND is_deleted = 0")
     int updateEmail(String email, Long id);
+
+    @Select("SELECT * FROM sys_user WHERE (username LIKE ? OR nickname LIKE ?) AND is_deleted = 0 ORDER BY created_at DESC")
+    List<User> search(String pattern, String pattern2);
 }
 
 ===== FILE: rdc-user-service\src\main\java\com\klei\user\mapper\UserRoleMapper.java =====
@@ -4240,11 +6766,65 @@ public interface VipOrderMapper {
 ===== FILE: rdc-user-service\src\main\java\com\klei\user\service\UserService.java =====
 package com.klei.user.service;
 
+import com.klei.user.dto.*;
+import com.klei.user.vo.LoginVO;
+import com.klei.user.vo.UserVO;
+import java.util.List;
+
+public interface UserService {
+
+    UserVO findById(Long id);
+
+    long register(RegisterDTO dto);
+
+    long registerAdmin(RegisterDTO dto);
+
+    LoginVO login(LoginDTO dto);
+
+    LoginVO refreshToken(String refreshToken);
+
+    void logout(Long userId, String accessToken);
+
+    void updateProfile(Long userId, UpdateProfileDTO dto);
+
+    void updatePassword(Long userId, UpdatePasswordDTO dto);
+
+    void bindEmail(Long userId, String email);
+
+    void sendResetCode(String username);
+
+    void resetPassword(ResetPasswordDTO dto);
+
+    List<UserVO> searchUsers(String keyword);
+}
+
+===== FILE: rdc-user-service\src\main\java\com\klei\user\service\VipService.java =====
+package com.klei.user.service;
+
+import com.klei.user.dto.VipOrderDTO;
+import com.klei.user.vo.VipOrderVO;
+import java.util.List;
+
+public interface VipService {
+
+    List<VipOrderVO> findByUserId(Long userId);
+
+    long createOrder(Long userId, VipOrderDTO dto);
+
+    void payOrder(Long orderId);
+}
+
+===== FILE: rdc-user-service\src\main\java\com\klei\user\service\impl\UserServiceImpl.java =====
+package com.klei.user.service.impl;
+
 import com.klei.common.annotation.Autowired;
 import com.klei.common.annotation.Component;
 import com.klei.common.annotation.Transactional;
+import com.klei.common.exception.AuthException;
 import com.klei.common.exception.BusinessException;
+import com.klei.common.pool.ConnectionPool;
 import com.klei.common.utils.JwtUtil;
+import com.klei.common.utils.LogUtil;
 import com.klei.common.utils.MailUtil;
 import com.klei.common.utils.PasswordUtil;
 import com.klei.common.utils.RedisUtil;
@@ -4256,16 +6836,21 @@ import com.klei.user.mapper.RoleMapper;
 import com.klei.user.mapper.RolePermissionMapper;
 import com.klei.user.mapper.UserMapper;
 import com.klei.user.mapper.UserRoleMapper;
+import com.klei.user.service.UserService;
 import com.klei.user.vo.LoginVO;
 import com.klei.user.vo.UserVO;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.stream.Collectors;
 
 @Component
-public class UserService {
+public class UserServiceImpl implements UserService {
 
     private static final String ADMIN_INVITE_CODE = "RDC-ADMIN-2026";
     private static final int USERNAME_MIN = 3;
@@ -4282,11 +6867,13 @@ public class UserService {
     @Autowired
     private RolePermissionMapper rolePermissionMapper;
 
+    @Override
     public UserVO findById(Long id) {
         User user = userMapper.findById(id);
         return user == null ? null : toUserVO(user);
     }
 
+    @Override
     @Transactional
     public long register(RegisterDTO dto) {
         validateUsername(dto.getUsername());
@@ -4303,9 +6890,21 @@ public class UserService {
                 UserStatus.NORMAL
         );
         bindRole(userId, "ROLE_USER");
+
+        // 鑷姩鍒涘缓閽卞寘
+        try (Connection conn = ConnectionPool.getConnection();
+             PreparedStatement ps = conn.prepareStatement(
+                     "INSERT INTO wallet (user_id, balance, is_deleted, created_at, updated_at) VALUES (?, 0.00, 0, NOW(), NOW())")) {
+            ps.setLong(1, userId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            LogUtil.error("鑷姩鍒涘缓閽卞寘澶辫触 uid=" + userId, e);
+        }
+
         return userId;
     }
 
+    @Override
     @Transactional
     public long registerAdmin(RegisterDTO dto) {
         validateUsername(dto.getUsername());
@@ -4328,6 +6927,7 @@ public class UserService {
         return userId;
     }
 
+    @Override
     public LoginVO login(LoginDTO dto) {
         if (dto.getCaptcha() == null || dto.getCaptchaUuid() == null) {
             throw new BusinessException("璇疯緭鍏ラ獙璇佺爜");
@@ -4342,14 +6942,18 @@ public class UserService {
         if (user == null || !PasswordUtil.check(dto.getPassword(), user.getPassword())) {
             throw new BusinessException("鐢ㄦ埛鍚嶆垨瀵嗙爜閿欒");
         }
-        if (UserStatus.BANNED.equals(user.getStatus())) {
-            throw new BusinessException("璐﹀彿宸茶灏佺");
-        }
 
         List<String> roles = getRoles(user.getId());
         List<String> permissions = getPermissions(user.getId());
 
-        Date banEndTime = user.getBanEndTime() == null ? null : Timestamp.valueOf(user.getBanEndTime());
+        Date banEndTime = null;
+        if (user.getBanEndTime() != null) {
+            banEndTime = Timestamp.valueOf(user.getBanEndTime());
+        } else if (UserStatus.BANNED.equals(user.getStatus())) {
+            banEndTime = Date.from(LocalDateTime.of(2099, 12, 31, 23, 59, 59)
+                    .atZone(ZoneId.systemDefault()).toInstant());
+        }
+
         String accessToken = JwtUtil.createAccessToken(user.getId(), permissions, roles, user.getVipLevel(), banEndTime);
 
         LoginVO vo = new LoginVO();
@@ -4367,6 +6971,34 @@ public class UserService {
         return vo;
     }
 
+    @Override
+    public LoginVO refreshToken(String refreshToken) {
+        var jwt = JwtUtil.verify(refreshToken);
+        Long userId = jwt.getClaim("userId").asLong();
+
+        String stored = RedisUtil.get("refresh:" + userId);
+        if (stored == null || !stored.equals(refreshToken)) {
+            throw new AuthException(401, "鐧诲綍宸茶繃鏈燂紝璇烽噸鏂扮櫥褰?);
+        }
+
+        User user = userMapper.findById(userId);
+        if (user == null) {
+            throw new BusinessException("鐢ㄦ埛涓嶅瓨鍦?);
+        }
+
+        List<String> roles = getRoles(userId);
+        List<String> permissions = getPermissions(userId);
+        Date banEndTime = user.getBanEndTime() == null ? null : Timestamp.valueOf(user.getBanEndTime());
+        String newAccessToken = JwtUtil.createAccessToken(userId, permissions, roles, user.getVipLevel(), banEndTime);
+
+        LoginVO vo = new LoginVO();
+        vo.setAccessToken(newAccessToken);
+        vo.setRefreshToken(refreshToken);
+        vo.setUser(toUserVO(user, roles));
+        return vo;
+    }
+
+    @Override
     public void logout(Long userId, String accessToken) {
         try {
             var jwt = JwtUtil.verify(accessToken);
@@ -4379,11 +7011,13 @@ public class UserService {
         RedisUtil.del("refresh:" + userId);
     }
 
+    @Override
     @Transactional
     public void updateProfile(Long userId, UpdateProfileDTO dto) {
         userMapper.updateProfile(dto.getNickname(), dto.getAvatar(), dto.getEmail(), dto.getPhone(), userId);
     }
 
+    @Override
     @Transactional
     public void updatePassword(Long userId, UpdatePasswordDTO dto) {
         validatePassword(dto.getNewPassword());
@@ -4394,6 +7028,7 @@ public class UserService {
         userMapper.updatePassword(PasswordUtil.hash(dto.getNewPassword()), userId);
     }
 
+    @Override
     @Transactional
     public void bindEmail(Long userId, String email) {
         if (email == null || !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
@@ -4406,6 +7041,7 @@ public class UserService {
         userMapper.updateEmail(email, userId);
     }
 
+    @Override
     public void sendResetCode(String username) {
         User user = userMapper.findByUsername(username);
         if (user == null) {
@@ -4421,6 +7057,7 @@ public class UserService {
         MailUtil.sendResetCode(user.getEmail(), code);
     }
 
+    @Override
     @Transactional
     public void resetPassword(ResetPasswordDTO dto) {
         validatePassword(dto.getNewPassword());
@@ -4436,15 +7073,26 @@ public class UserService {
         RedisUtil.del("reset:code:" + user.getId());
     }
 
+    @Override
+    public List<UserVO> searchUsers(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return List.of();
+        }
+        String pattern = "%" + keyword.trim() + "%";
+        return userMapper.search(pattern, pattern).stream()
+                .map(this::toUserVO)
+                .collect(Collectors.toList());
+    }
+
     private void validateUsername(String username) {
         if (username == null || username.length() < USERNAME_MIN || username.length() > USERNAME_MAX) {
-            throw new BusinessException("鐢ㄦ埛鍚嶉暱搴﹂渶鍦? + USERNAME_MIN + "-" + USERNAME_MAX + " 浣?);
+            throw new BusinessException("鐢ㄦ埛鍚嶉暱搴﹂渶鍦?" + USERNAME_MIN + "-" + USERNAME_MAX + " 浣?);
         }
     }
 
     private void validatePassword(String password) {
         if (password == null || password.length() < PASSWORD_MIN || password.length() > PASSWORD_MAX) {
-            throw new BusinessException("瀵嗙爜闀垮害闇€鍦? + PASSWORD_MIN + "-" + PASSWORD_MAX + " 浣?);
+            throw new BusinessException("瀵嗙爜闀垮害闇€鍦?" + PASSWORD_MIN + "-" + PASSWORD_MAX + " 浣?);
         }
     }
 
@@ -4496,37 +7144,49 @@ public class UserService {
     }
 }
 
-===== FILE: rdc-user-service\src\main\java\com\klei\user\service\VipService.java =====
-package com.klei.user.service;
+===== FILE: rdc-user-service\src\main\java\com\klei\user\service\impl\VipServiceImpl.java =====
+package com.klei.user.service.impl;
 
 import com.klei.common.annotation.Autowired;
 import com.klei.common.annotation.Component;
 import com.klei.common.annotation.Transactional;
 import com.klei.common.exception.BusinessException;
+import com.klei.order.entity.Wallet;
+import com.klei.order.entity.enums.WalletRecordType;
+import com.klei.order.mapper.WalletMapper;
+import com.klei.order.mapper.WalletRecordMapper;
 import com.klei.user.dto.VipOrderDTO;
 import com.klei.user.entity.VipOrder;
 import com.klei.user.entity.enums.VipOrderStatus;
 import com.klei.user.mapper.UserMapper;
 import com.klei.user.mapper.VipOrderMapper;
+import com.klei.user.service.VipService;
 import com.klei.user.vo.VipOrderVO;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
-public class VipService {
+public class VipServiceImpl implements VipService {
 
     @Autowired
     private VipOrderMapper vipOrderMapper;
     @Autowired
     private UserMapper userMapper;
+    @Autowired
+    private WalletMapper walletMapper;
+    @Autowired
+    private WalletRecordMapper walletRecordMapper;
 
+    @Override
     public List<VipOrderVO> findByUserId(Long userId) {
         return vipOrderMapper.findByUserId(userId).stream()
                 .map(this::toVO).collect(Collectors.toList());
     }
 
+    @Override
     @Transactional
     public long createOrder(Long userId, VipOrderDTO dto) {
         return vipOrderMapper.insert(
@@ -4538,14 +7198,40 @@ public class VipService {
         );
     }
 
+    @Override
     @Transactional
     public void payOrder(Long orderId) {
         VipOrder order = vipOrderMapper.findById(orderId);
         if (order == null || !VipOrderStatus.PENDING.equals(order.getStatus())) {
             throw new BusinessException("璁㈠崟涓嶅瓨鍦ㄦ垨宸插鐞?);
         }
+
+        // 鏌ラ挶鍖呬綑棰?
+        Wallet wallet = walletMapper.findByUserId(order.getUserId());
+        if (wallet == null) {
+            throw new BusinessException("璇峰厛鍏呭€?);
+        }
+        if (wallet.getBalance().compareTo(order.getPrice()) < 0) {
+            throw new BusinessException("浣欓涓嶈冻");
+        }
+
+        // 鎵ｆ
+        BigDecimal newBalance = wallet.getBalance().subtract(order.getPrice());
+        walletMapper.updateBalance(newBalance, wallet.getId());
+
+        // 璁版祦姘?
+        walletRecordMapper.insert(
+                order.getUserId(),
+                WalletRecordType.VIP,
+                order.getPrice(),
+                newBalance,
+                "璐拱VIP绛夌骇" + order.getVipLevel()
+        );
+
+        // 鏇存柊璁㈠崟鐘舵€?
         vipOrderMapper.updateStatus(VipOrderStatus.PAID, orderId);
 
+        // 鏇存柊鐢ㄦ埛VIP绛夌骇鍜岃繃鏈熸椂闂?
         LocalDateTime expireTime = LocalDateTime.now().plusMonths(order.getDurationMonths());
         userMapper.updateVip(order.getVipLevel(), expireTime, order.getUserId());
     }
@@ -4645,6 +7331,138 @@ public class CaptchaServlet extends HttpServlet {
     }
 }
 
+===== FILE: rdc-user-service\src\main\java\com\klei\user\servlet\UserServlet.java =====
+package com.klei.user.servlet;
+
+import com.google.gson.reflect.TypeToken;
+import com.klei.common.ioc.IoCContainer;
+import com.klei.common.servlet.BaseServlet;
+import com.klei.common.utils.AuthUtil;
+import com.klei.common.utils.JwtUtil;
+import com.klei.common.utils.Result;
+import com.klei.user.dto.*;
+import com.klei.user.service.UserService;
+import com.klei.user.service.VipService;
+import com.klei.user.vo.LoginVO;
+import com.klei.user.vo.UserVO;
+
+import javax.servlet.ServletException;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.util.Map;
+
+@WebServlet(urlPatterns = {
+        "/login", "/register", "/admin-register", "/logout", "/refresh-token",
+        "/forgot-password", "/reset-password", "/profile",
+        "/update-profile", "/update-password", "/bind-email",
+        "/search-user", "/vip/order", "/vip/pay"
+})
+public class UserServlet extends BaseServlet {
+
+    private UserService userService;
+    private VipService vipService;
+    private final Type mapType = new TypeToken<Map<String, String>>() {}.getType();
+
+    @Override
+    public void init() throws ServletException {
+        super.init();
+        this.userService = IoCContainer.getBean(UserService.class);
+        this.vipService = IoCContainer.getBean(VipService.class);
+    }
+
+    private void login(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        LoginDTO dto = gson.fromJson(req.getReader(), LoginDTO.class);
+        LoginVO vo = userService.login(dto);
+        writeJson(resp, Result.ok(vo));
+    }
+
+    private void register(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        RegisterDTO dto = gson.fromJson(req.getReader(), RegisterDTO.class);
+        long userId = userService.register(dto);
+        writeJson(resp, Result.ok(userId));
+    }
+
+    private void adminRegister(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        RegisterDTO dto = gson.fromJson(req.getReader(), RegisterDTO.class);
+        long userId = userService.registerAdmin(dto);
+        writeJson(resp, Result.ok(userId));
+    }
+
+    private void logout(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long userId = AuthUtil.getUserId(req);
+        String token = JwtUtil.extractToken(req);
+        userService.logout(userId, token);
+        writeJson(resp, Result.ok());
+    }
+
+    private void refreshToken(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Map<String, String> map = gson.fromJson(req.getReader(), mapType);
+        LoginVO vo = userService.refreshToken(map.get("refreshToken"));
+        writeJson(resp, Result.ok(vo));
+    }
+
+    private void forgotPassword(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Map<String, String> map = gson.fromJson(req.getReader(), mapType);
+        userService.sendResetCode(map.get("username"));
+        writeJson(resp, Result.ok());
+    }
+
+    private void resetPassword(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        ResetPasswordDTO dto = gson.fromJson(req.getReader(), ResetPasswordDTO.class);
+        userService.resetPassword(dto);
+        writeJson(resp, Result.ok());
+    }
+
+    private void profile(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long userId = AuthUtil.getUserId(req);
+        UserVO vo = userService.findById(userId);
+        writeJson(resp, Result.ok(vo));
+    }
+
+    private void updateProfile(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long userId = AuthUtil.getUserId(req);
+        UpdateProfileDTO dto = gson.fromJson(req.getReader(), UpdateProfileDTO.class);
+        userService.updateProfile(userId, dto);
+        writeJson(resp, Result.ok());
+    }
+
+    private void updatePassword(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long userId = AuthUtil.getUserId(req);
+        UpdatePasswordDTO dto = gson.fromJson(req.getReader(), UpdatePasswordDTO.class);
+        userService.updatePassword(userId, dto);
+        writeJson(resp, Result.ok());
+    }
+
+    private void bindEmail(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long userId = AuthUtil.getUserId(req);
+        Map<String, String> map = gson.fromJson(req.getReader(), mapType);
+        userService.bindEmail(userId, map.get("email"));
+        writeJson(resp, Result.ok());
+    }
+
+    private void searchUser(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String keyword = req.getParameter("keyword");
+        writeJson(resp, Result.ok(userService.searchUsers(keyword)));
+    }
+
+    private void createVipOrder(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long userId = AuthUtil.getUserId(req);
+        VipOrderDTO dto = gson.fromJson(req.getReader(), VipOrderDTO.class);
+        long orderId = vipService.createOrder(userId, dto);
+        writeJson(resp, Result.ok(orderId));
+    }
+
+    private void payVip(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Map<String, String> map = gson.fromJson(req.getReader(), mapType);
+        Long orderId = Long.valueOf(map.get("orderId"));
+        vipService.payOrder(orderId);
+        writeJson(resp, Result.ok());
+    }
+}
+
 ===== FILE: rdc-user-service\src\main\java\com\klei\user\vo\LoginVO.java =====
 package com.klei.user.vo;
 
@@ -4711,6 +7529,14 @@ public class VipOrderVO {
         <param-value>com.klei.user</param-value>
     </context-param>
 
+    <filter>
+        <filter-name>corsFilter</filter-name>
+        <filter-class>com.klei.common.filter.CorsFilter</filter-class>
+    </filter>
+    <filter-mapping>
+        <filter-name>corsFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping>
     <filter>
         <filter-name>encodingFilter</filter-name>
         <filter-class>com.klei.common.filter.EncodingFilter</filter-class>

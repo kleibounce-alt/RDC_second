@@ -2,6 +2,8 @@ package com.klei.product.mapper;
 
 import com.klei.common.annotation.*;
 import com.klei.product.entity.Follow;
+import com.klei.product.vo.FollowVO;
+
 import java.util.List;
 
 public interface FollowMapper {
@@ -20,4 +22,10 @@ public interface FollowMapper {
 
     @Update("UPDATE follow SET is_deleted = 1, updated_at = NOW() WHERE user_id = ? AND follow_user_id = ?")
     int deleteByUserIdAndFollowUserId(Long userId, Long followUserId);
+
+    @Select("SELECT u.id as follow_user_id, u.nickname, u.avatar, f.created_at FROM follow f JOIN sys_user u ON f.follow_user_id = u.id WHERE f.user_id = ? AND f.is_deleted = 0 AND u.is_deleted = 0 ORDER BY f.created_at DESC")
+    List<FollowVO> findFollowsWithUser(Long userId);
+
+    @Select("SELECT u.id as follow_user_id, u.nickname, u.avatar, f.created_at FROM follow f JOIN sys_user u ON f.user_id = u.id WHERE f.follow_user_id = ? AND f.is_deleted = 0 AND u.is_deleted = 0 ORDER BY f.created_at DESC")
+    List<FollowVO> findFansWithUser(Long userId);
 }

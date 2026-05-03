@@ -7,6 +7,7 @@ import java.time.LocalDateTime;
 public class Comment {
     private Long id;
     private Long productId;
+    private Long parentId;
     private Long userId;
     private String content;
     private Integer likeCount;

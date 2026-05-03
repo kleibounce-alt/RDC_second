@@ -122,6 +122,7 @@ CREATE TABLE `follow` (
 CREATE TABLE `comment` (
                            `id` BIGINT NOT NULL AUTO_INCREMENT,
                            `product_id` BIGINT NOT NULL,
+                           `parent_id` BIGINT DEFAULT NULL,
                            `user_id` BIGINT NOT NULL,
                            `content` TEXT NOT NULL,
                            `like_count` INT DEFAULT '0',

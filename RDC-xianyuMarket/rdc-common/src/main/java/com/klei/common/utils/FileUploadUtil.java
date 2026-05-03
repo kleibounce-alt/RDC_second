@@ -40,7 +40,13 @@ public class FileUploadUtil {
             }
 
             String fileName = item.getName();
-            String ext = fileName.substring(fileName.lastIndexOf(".")).toLowerCase();
+            // 修复：处理无扩展名或空文件名的情况
+            int dotIndex = fileName.lastIndexOf(".");
+            if (dotIndex == -1) {
+                LogUtil.warn("跳过无扩展名的文件: " + fileName);
+                continue;
+            }
+            String ext = fileName.substring(dotIndex).toLowerCase();
 
             if (!isAllowed(ext)) {
                 LogUtil.warn("跳过不支持的文件类型: " + ext);

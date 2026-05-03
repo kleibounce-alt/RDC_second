@@ -28,6 +28,13 @@
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
         </dependency>
+        <!-- 新增：引入 order-service 的 classes，解决 Wallet 等引用找不到的问题 -->
+        <dependency>
+            <groupId>com.klei</groupId>
+            <artifactId>rdc-order-service</artifactId>
+            <version>${project.version}</version>
+            <classifier>classes</classifier>
+        </dependency>
     </dependencies>
 
     <build>

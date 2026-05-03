@@ -28,6 +28,12 @@
             <artifactId>lombok</artifactId>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>com.klei</groupId>
+            <artifactId>rdc-message-service</artifactId>
+            <version>${project.version}</version>
+            <classifier>classes</classifier>
+        </dependency>
     </dependencies>
 
     <build>

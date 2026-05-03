@@ -8,6 +8,7 @@ import com.klei.common.utils.JwtUtil;
 import com.klei.common.utils.Result;
 import com.klei.user.dto.*;
 import com.klei.user.service.UserService;
+import com.klei.user.service.VipService;
 import com.klei.user.vo.LoginVO;
 import com.klei.user.vo.UserVO;
 
@@ -20,21 +21,23 @@ import java.lang.reflect.Type;
 import java.util.Map;
 
 @WebServlet(urlPatterns = {
-        "/login", "/register", "/logout", "/refresh-token",
+        "/login", "/register", "/admin-register", "/logout", "/refresh-token",
         "/forgot-password", "/reset-password", "/profile",
-        "/update-profile", "/update-password", "/bind-email"
+        "/update-profile", "/update-password", "/bind-email",
+        "/search-user", "/vip/order", "/vip/pay"
 })
 public class UserServlet extends BaseServlet {
 
     private UserService userService;
+    private VipService vipService;
     private final Type mapType = new TypeToken<Map<String, String>>() {}.getType();
 
     @Override
     public void init() throws ServletException {
         super.init();
         this.userService = IoCContainer.getBean(UserService.class);
+        this.vipService = IoCContainer.getBean(VipService.class);
     }
-
 
     private void login(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         LoginDTO dto = gson.fromJson(req.getReader(), LoginDTO.class);
@@ -45,6 +48,12 @@ public class UserServlet extends BaseServlet {
     private void register(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         RegisterDTO dto = gson.fromJson(req.getReader(), RegisterDTO.class);
         long userId = userService.register(dto);
+        writeJson(resp, Result.ok(userId));
+    }
+
+    private void adminRegister(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        RegisterDTO dto = gson.fromJson(req.getReader(), RegisterDTO.class);
+        long userId = userService.registerAdmin(dto);
         writeJson(resp, Result.ok(userId));
     }
 
@@ -97,6 +106,25 @@ public class UserServlet extends BaseServlet {
         Long userId = AuthUtil.getUserId(req);
         Map<String, String> map = gson.fromJson(req.getReader(), mapType);
         userService.bindEmail(userId, map.get("email"));
+        writeJson(resp, Result.ok());
+    }
+
+    private void searchUser(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String keyword = req.getParameter("keyword");
+        writeJson(resp, Result.ok(userService.searchUsers(keyword)));
+    }
+    
+    private void order(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Long userId = AuthUtil.getUserId(req);
+        VipOrderDTO dto = gson.fromJson(req.getReader(), VipOrderDTO.class);
+        long orderId = vipService.createOrder(userId, dto);
+        writeJson(resp, Result.ok(orderId));
+    }
+
+    private void pay(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Map<String, String> map = gson.fromJson(req.getReader(), mapType);
+        Long orderId = Long.valueOf(map.get("orderId"));
+        vipService.payOrder(orderId);
         writeJson(resp, Result.ok());
     }
 }
