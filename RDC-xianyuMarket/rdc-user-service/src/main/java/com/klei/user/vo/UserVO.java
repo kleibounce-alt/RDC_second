@@ -16,6 +16,7 @@ public class UserVO {
     private Integer vipLevel;
     private LocalDateTime vipExpireTime;
     private UserStatus status;
+    private LocalDateTime banEndTime;
     private List<String> roles;
     private LocalDateTime createdAt;
 }

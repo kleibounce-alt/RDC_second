@@ -54,13 +54,12 @@ public class TransactionManager {
                 }
             }
         }
-        // 修复：不在 rollback 里 remove，统一交给 close 清理
+
     }
 
     public static void close() {
         Integer count = COUNTER.get();
         if (count == null) {
-            // 修复：即使 count 被 rollback 清掉了，也要强制释放连接
             forceClose();
             return;
         }

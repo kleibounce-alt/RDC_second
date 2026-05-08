@@ -1,13 +1,13 @@
 package com.klei.product.service;
 
+import com.klei.common.vo.PageResult;
 import com.klei.product.vo.FollowVO;
-import java.util.List;
 
 public interface FollowService {
 
     void toggleFollow(Long userId, Long followUserId);
 
-    List<FollowVO> findMyFollows(Long userId);
+    PageResult<FollowVO> findMyFollows(Long userId, int page, int size);
 
-    List<FollowVO> findMyFans(Long userId);
+    PageResult<FollowVO> findMyFans(Long userId, int page, int size);
 }

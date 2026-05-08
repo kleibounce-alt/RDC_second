@@ -186,7 +186,7 @@ public class RedisUtil {
         }
     }
 
-    // 按前缀查 keys（小项目可用，生产用 scan）
+    // 按前缀查 keys
     public static Set<String> keys(String pattern) {
         try (Jedis jedis = POOL.getResource()) {
             return jedis.keys(pattern);

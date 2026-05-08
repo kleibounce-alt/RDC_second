@@ -37,6 +37,13 @@ public class FavoriteServlet extends BaseServlet {
 
     private void list(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         Long userId = AuthUtil.getUserId(req);
-        writeJson(resp, Result.ok(favoriteService.findMyFavorites(userId)));
+        int page = parseInt(req.getParameter("page"), 1);
+        int size = parseInt(req.getParameter("size"), 20);
+        writeJson(resp, Result.ok(favoriteService.findMyFavorites(userId, page, size)));
+    }
+
+    private int parseInt(String val, int defaultVal) {
+        if (val == null || val.isEmpty()) return defaultVal;
+        try { return Integer.parseInt(val); } catch (NumberFormatException e) { return defaultVal; }
     }
 }

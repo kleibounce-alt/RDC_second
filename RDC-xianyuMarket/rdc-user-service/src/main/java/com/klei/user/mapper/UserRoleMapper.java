@@ -17,4 +17,7 @@ public interface UserRoleMapper {
 
     @Update("UPDATE sys_user_role SET is_deleted = 1 WHERE user_id = ? AND role_id = ?")
     int deleteByUserIdAndRoleId(Long userId, Long roleId);
+
+    @Select("SELECT ur.user_id FROM sys_user_role ur JOIN sys_role r ON ur.role_id = r.id WHERE r.code = ? AND ur.is_deleted = 0 AND r.is_deleted = 0")
+    List<Long> findUserIdsByRoleCode(String roleCode);
 }

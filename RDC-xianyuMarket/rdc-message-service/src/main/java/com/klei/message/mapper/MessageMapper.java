@@ -13,6 +13,12 @@ public interface MessageMapper {
     @Select("SELECT * FROM message WHERE user_id = ? AND is_deleted = 0 ORDER BY created_at DESC")
     List<Message> findByUserId(Long userId);
 
+    @Select("SELECT * FROM message WHERE user_id = ? AND is_deleted = 0 ORDER BY created_at DESC LIMIT ?, ?")
+    List<Message> findByUserIdPage(Long userId, int offset, int size);
+
+    @Select("SELECT COUNT(*) FROM message WHERE user_id = ? AND is_deleted = 0")
+    long countByUserId(Long userId);
+
     @Select("SELECT * FROM message WHERE user_id = ? AND is_read = 0 AND is_deleted = 0 ORDER BY created_at DESC")
     List<Message> findUnreadByUserId(Long userId);
 

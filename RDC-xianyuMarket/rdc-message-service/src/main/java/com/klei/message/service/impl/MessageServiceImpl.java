@@ -2,10 +2,13 @@ package com.klei.message.service.impl;
 
 import com.google.gson.Gson;
 import com.klei.common.annotation.Autowired;
+import com.klei.common.annotation.Transactional;
+import com.klei.common.utils.GsonFactory;
 import com.klei.common.annotation.Component;
 import com.klei.common.exception.BusinessException;
 import com.klei.common.mq.RabbitMQConfig;
 import com.klei.common.utils.LogUtil;
+import com.klei.common.vo.PageResult;
 import com.klei.message.dto.MsgQueueItem;
 import com.klei.message.entity.Message;
 import com.klei.message.entity.enums.MessageType;
@@ -15,7 +18,6 @@ import com.klei.message.vo.MessageVO;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.List;
 import java.util.stream.Collectors;
 
 @Component
@@ -24,15 +26,24 @@ public class MessageServiceImpl implements MessageService {
     @Autowired
     private MessageMapper messageMapper;
 
-    private final Gson gson = new Gson();
+    private final Gson gson = GsonFactory.get();
 
     @Override
-    public List<MessageVO> findByUserId(Long userId) {
-        return messageMapper.findByUserId(userId).stream()
-                .map(this::toVO).collect(Collectors.toList());
+    public PageResult<MessageVO> findByUserId(Long userId, int page, int size) {
+        if (page < 1) page = 1;
+        if (size < 1) size = 20;
+        int offset = (page - 1) * size;
+        PageResult<MessageVO> result = new PageResult<>();
+        result.setList(messageMapper.findByUserIdPage(userId, offset, size).stream()
+                .map(this::toVO).collect(Collectors.toList()));
+        result.setTotal(messageMapper.countByUserId(userId));
+        result.setPage(page);
+        result.setSize(size);
+        return result;
     }
 
     @Override
+    @Transactional
     public int getUnreadCount(Long userId) {
         return messageMapper.findUnreadByUserId(userId).size();
     }

@@ -190,7 +190,16 @@ public class IoCContainer {
 
     @SuppressWarnings("unchecked")
     public static <T> T getBean(Class<T> clazz) {
-        return (T) beanMap.get(clazz);
+        T bean = (T) beanMap.get(clazz);
+        if (bean != null) {
+            return bean;
+        }
+        for (Map.Entry<Class<?>, Object> entry : beanMap.entrySet()) {
+            if (clazz.isAssignableFrom(entry.getKey())) {
+                return (T) entry.getValue();
+            }
+        }
+        return null;
     }
 
     public static <T> void register(Class<T> clazz, T instance) {

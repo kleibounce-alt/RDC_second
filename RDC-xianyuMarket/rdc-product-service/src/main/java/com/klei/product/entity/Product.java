@@ -4,6 +4,7 @@ import com.klei.product.entity.enums.ProductStatus;
 import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 public class Product {
@@ -21,4 +22,6 @@ public class Product {
     private Integer isDeleted;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private List<ProductImage> images;
+    private Boolean isFavorited;
 }

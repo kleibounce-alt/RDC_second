@@ -25,11 +25,16 @@ public class WalletServiceImpl implements WalletService {
     @Autowired
     private WalletRecordMapper walletRecordMapper;
 
+    private static final BigDecimal MAX_RECHARGE = new BigDecimal("99999999.99");
+
     @Override
     @Transactional
     public void recharge(Long userId, BigDecimal amount) {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new BusinessException("充值金额必须大于0");
+        }
+        if (amount.compareTo(MAX_RECHARGE) > 0) {
+            throw new BusinessException("单次充值不能超过99,999,999.99元");
         }
 
         Wallet wallet = walletMapper.findByUserId(userId);

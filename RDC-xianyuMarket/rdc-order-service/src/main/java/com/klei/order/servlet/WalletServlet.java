@@ -31,7 +31,22 @@ public class WalletServlet extends BaseServlet {
     private void recharge(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         Long userId = AuthUtil.getUserId(req);
         Map<String, String> map = gson.fromJson(req.getReader(), mapType);
-        BigDecimal amount = new BigDecimal(map.get("amount"));
+        String amountStr = map.get("amount");
+        if (amountStr == null || amountStr.isEmpty()) {
+            writeJson(resp, Result.fail("请输入充值金额"));
+            return;
+        }
+        BigDecimal amount;
+        try {
+            amount = new BigDecimal(amountStr);
+        } catch (NumberFormatException e) {
+            writeJson(resp, Result.fail("充值金额格式不正确"));
+            return;
+        }
+        if (amount.compareTo(new BigDecimal("99999999.99")) > 0) {
+            writeJson(resp, Result.fail("单次充值不能超过99,999,999.99元"));
+            return;
+        }
         walletService.recharge(userId, amount);
         writeJson(resp, Result.ok());
     }

@@ -4,6 +4,9 @@ import com.klei.common.annotation.Autowired;
 import com.klei.common.annotation.Component;
 import com.klei.common.annotation.Transactional;
 import com.klei.common.exception.BusinessException;
+import com.klei.common.mq.MqSender;
+import com.klei.common.utils.LogUtil;
+import com.klei.common.vo.PageResult;
 import com.klei.product.entity.Favorite;
 import com.klei.product.entity.Product;
 import com.klei.product.entity.ProductImage;
@@ -37,14 +40,23 @@ public class FavoriteServiceImpl implements FavoriteService {
         Favorite fav = favoriteMapper.findByUserIdAndProductId(userId, productId);
         if (fav == null || fav.getIsDeleted() == 1) {
             favoriteMapper.insert(userId, productId);
+            try {
+                MqSender.sendMessage(product.getUserId(), "SYSTEM", "您的商品【" + product.getTitle() + "】被收藏了");
+            } catch (Exception e) {
+                LogUtil.error("收藏通知发送失败", e);
+            }
         } else {
             favoriteMapper.deleteByUserIdAndProductId(userId, productId);
         }
     }
 
     @Override
-    public List<FavoriteVO> findMyFavorites(Long userId) {
-        List<Favorite> list = favoriteMapper.findByUserId(userId);
+    public PageResult<FavoriteVO> findMyFavorites(Long userId, int page, int size) {
+        if (page < 1) page = 1;
+        if (size < 1) size = 20;
+        int offset = (page - 1) * size;
+        List<Favorite> list = favoriteMapper.findByUserIdPage(userId, offset, size);
+        long total = favoriteMapper.countByUserId(userId);
         List<FavoriteVO> result = new ArrayList<>();
 
         for (Favorite f : list) {
@@ -64,6 +76,12 @@ public class FavoriteServiceImpl implements FavoriteService {
 
             result.add(vo);
         }
-        return result;
+
+        PageResult<FavoriteVO> pageResult = new PageResult<>();
+        pageResult.setList(result);
+        pageResult.setTotal(total);
+        pageResult.setPage(page);
+        pageResult.setSize(size);
+        return pageResult;
     }
 }

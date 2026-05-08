@@ -3,6 +3,7 @@ package com.klei.common.filter;
 import com.google.gson.Gson;
 import com.klei.common.exception.AuthException;
 import com.klei.common.exception.BusinessException;
+import com.klei.common.utils.GsonFactory;
 import com.klei.common.utils.LogUtil;
 import com.klei.common.utils.Result;
 
@@ -14,7 +15,7 @@ import java.io.IOException;
 
 public class GlobalExceptionFilter implements Filter {
 
-    private final Gson gson = new Gson();
+    private final Gson gson = GsonFactory.get();
 
     @Override
     public void init(FilterConfig filterConfig) {}
@@ -45,7 +46,7 @@ public class GlobalExceptionFilter implements Filter {
 
         } catch (Exception e) {
             LogUtil.error("系统异常: " + e.getMessage() + " | URI=" + request.getRequestURI(), e);
-            String json = gson.toJson(Result.fail("系统繁忙，请稍后再试"));
+            String json = gson.toJson(Result.fail(e.getClass().getSimpleName() + ": " + e.getMessage()));
             response.setStatus(500);
             response.getWriter().write(json);
         }

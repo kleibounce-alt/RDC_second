@@ -169,7 +169,7 @@ CREATE TABLE `orders` (
                           `seller_id` BIGINT NOT NULL,
                           `product_id` BIGINT NOT NULL,
                           `price` DECIMAL(10,2) NOT NULL,
-                          `status` ENUM('PENDING','PAID','CANCELLED','COMPLETED') DEFAULT 'PENDING',
+                          `status` ENUM('PENDING','PAID','CANCELLED','COMPLETED','REFUNDING','REFUND_REJECTED') DEFAULT 'PENDING',
                           `is_deleted` TINYINT(1) DEFAULT '0',
                           `created_at` DATETIME,
                           `updated_at` DATETIME,

@@ -54,7 +54,11 @@ public class MapperProxy implements InvocationHandler {
 
             if (args != null) {
                 for (int i = 0; i < args.length; i++) {
-                    ps.setObject(i + 1, args[i]);
+                    Object arg = args[i];
+                    if (arg instanceof Enum) {
+                        arg = ((Enum<?>) arg).name();
+                    }
+                    ps.setObject(i + 1, arg);
                 }
             }
 
@@ -107,9 +111,20 @@ public class MapperProxy implements InvocationHandler {
                     elementType = (Class<?>) actualTypes[0];
                 }
             }
+            boolean scalar = elementType.isPrimitive()
+                    || ResultSetMapper.isWrapperType(elementType)
+                    || elementType == String.class;
             List<Object> list = new ArrayList<>();
             while (rs.next()) {
-                list.add(ResultSetMapper.mapRow(rs, elementType));
+                if (scalar) {
+                    Object val = rs.getObject(1);
+                    if (val != null && elementType == Long.class && val instanceof Integer) {
+                        val = ((Integer) val).longValue();
+                    }
+                    list.add(val);
+                } else {
+                    list.add(ResultSetMapper.mapRow(rs, elementType));
+                }
             }
             return list;
         }

@@ -2,6 +2,7 @@ package com.klei.message.mq;
 
 import com.google.gson.Gson;
 import com.klei.common.annotation.Autowired;
+import com.klei.common.utils.GsonFactory;
 import com.klei.common.annotation.Component;
 import com.klei.common.mq.RabbitMQConfig;
 import com.klei.common.utils.LogUtil;
@@ -23,7 +24,7 @@ public class MessageConsumer {
     @Autowired
     private MessageMapper messageMapper;
 
-    private final Gson gson = new Gson();
+    private final Gson gson = GsonFactory.get();
     private static final int MAX_RETRY = 2; // 最多重试 3 次（0,1,2）
 
     public void start() {

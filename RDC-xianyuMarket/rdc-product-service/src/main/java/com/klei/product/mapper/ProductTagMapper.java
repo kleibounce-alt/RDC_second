@@ -12,7 +12,7 @@ public interface ProductTagMapper {
     @Insert("INSERT INTO product_tag (product_id, tag_id, is_deleted, created_at) VALUES (?, ?, 0, NOW())")
     int insert(Long productId, Long tagId);
 
-    @Update("UPDATE product_tag SET is_deleted = 1 WHERE product_id = ?")
+    @Delete("DELETE FROM product_tag WHERE product_id = ?")
     int deleteByProductId(Long productId);
 
     @Update("UPDATE product_tag SET is_deleted = 1 WHERE product_id = ? AND tag_id = ?")

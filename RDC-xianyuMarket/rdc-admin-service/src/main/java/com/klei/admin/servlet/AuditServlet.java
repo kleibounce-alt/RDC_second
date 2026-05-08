@@ -5,6 +5,7 @@ import com.klei.admin.service.AuditService;
 import com.klei.common.annotation.RequireRole;
 import com.klei.common.ioc.IoCContainer;
 import com.klei.common.servlet.BaseServlet;
+import com.klei.common.utils.RedisUtil;
 import com.klei.common.utils.Result;
 
 import javax.servlet.ServletException;
@@ -38,6 +39,7 @@ public class AuditServlet extends BaseServlet {
         Long adminId = (Long) req.getAttribute("userId");
 
         auditService.approve(productId, adminId);
+        clearProductCache(productId);
         writeJson(resp, Result.ok());
     }
 
@@ -48,7 +50,15 @@ public class AuditServlet extends BaseServlet {
         Long adminId = (Long) req.getAttribute("userId");
 
         auditService.reject(productId, adminId, reason);
+        clearProductCache(productId);
         writeJson(resp, Result.ok());
+    }
+
+    private void clearProductCache(Long productId) {
+        RedisUtil.del("product:detail:" + productId);
+        for (String key : RedisUtil.keys("product:list:*")) {
+            RedisUtil.del(key);
+        }
     }
 
     private void logs(HttpServletRequest req, HttpServletResponse resp) throws IOException {

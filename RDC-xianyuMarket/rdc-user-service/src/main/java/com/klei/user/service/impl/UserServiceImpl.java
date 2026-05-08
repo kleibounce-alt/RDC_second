@@ -5,12 +5,12 @@ import com.klei.common.annotation.Component;
 import com.klei.common.annotation.Transactional;
 import com.klei.common.exception.AuthException;
 import com.klei.common.exception.BusinessException;
-import com.klei.common.pool.ConnectionPool;
 import com.klei.common.utils.JwtUtil;
 import com.klei.common.utils.LogUtil;
 import com.klei.common.utils.MailUtil;
 import com.klei.common.utils.PasswordUtil;
 import com.klei.common.utils.RedisUtil;
+import com.klei.order.mapper.WalletMapper;
 import com.klei.user.dto.*;
 import com.klei.user.entity.Role;
 import com.klei.user.entity.User;
@@ -23,9 +23,6 @@ import com.klei.user.service.UserService;
 import com.klei.user.vo.LoginVO;
 import com.klei.user.vo.UserVO;
 
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -49,6 +46,8 @@ public class UserServiceImpl implements UserService {
     private RoleMapper roleMapper;
     @Autowired
     private RolePermissionMapper rolePermissionMapper;
+    @Autowired
+    private WalletMapper walletMapper;
 
     @Override
     public UserVO findById(Long id) {
@@ -61,7 +60,9 @@ public class UserServiceImpl implements UserService {
     public long register(RegisterDTO dto) {
         validateUsername(dto.getUsername());
         validatePassword(dto.getPassword());
+        validateEmail(dto.getEmail());
         checkUsernameNotExists(dto.getUsername());
+        checkEmailNotExists(dto.getEmail());
 
         long userId = userMapper.insert(
                 dto.getUsername(),
@@ -74,15 +75,7 @@ public class UserServiceImpl implements UserService {
         );
         bindRole(userId, "ROLE_USER");
 
-        // 自动创建钱包
-        try (Connection conn = ConnectionPool.getConnection();
-             PreparedStatement ps = conn.prepareStatement(
-                     "INSERT INTO wallet (user_id, balance, is_deleted, created_at, updated_at) VALUES (?, 0.00, 0, NOW(), NOW())")) {
-            ps.setLong(1, userId);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            LogUtil.error("自动创建钱包失败 uid=" + userId, e);
-        }
+        walletMapper.insert(userId);
 
         return userId;
     }
@@ -92,10 +85,12 @@ public class UserServiceImpl implements UserService {
     public long registerAdmin(RegisterDTO dto) {
         validateUsername(dto.getUsername());
         validatePassword(dto.getPassword());
+        validateEmail(dto.getEmail());
         if (!ADMIN_INVITE_CODE.equals(dto.getInviteCode())) {
             throw new BusinessException("邀请码错误");
         }
         checkUsernameNotExists(dto.getUsername());
+        checkEmailNotExists(dto.getEmail());
 
         long userId = userMapper.insert(
                 dto.getUsername(),
@@ -269,19 +264,31 @@ public class UserServiceImpl implements UserService {
 
     private void validateUsername(String username) {
         if (username == null || username.length() < USERNAME_MIN || username.length() > USERNAME_MAX) {
-            throw new BusinessException("用户名长度需在 " + USERNAME_MIN + "-" + USERNAME_MAX + " 位");
+            throw new BusinessException("用户名长度需在" + USERNAME_MIN + "-" + USERNAME_MAX + " 位");
         }
     }
 
     private void validatePassword(String password) {
         if (password == null || password.length() < PASSWORD_MIN || password.length() > PASSWORD_MAX) {
-            throw new BusinessException("密码长度需在 " + PASSWORD_MIN + "-" + PASSWORD_MAX + " 位");
+            throw new BusinessException("密码长度需在" + PASSWORD_MIN + "-" + PASSWORD_MAX + " 位");
         }
     }
 
     private void checkUsernameNotExists(String username) {
         if (userMapper.findByUsername(username) != null) {
             throw new BusinessException("用户名已存在");
+        }
+    }
+
+    private void validateEmail(String email) {
+        if (email == null || !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+            throw new BusinessException("邮箱格式不正确");
+        }
+    }
+
+    private void checkEmailNotExists(String email) {
+        if (userMapper.findByEmail(email) != null) {
+            throw new BusinessException("该邮箱已被注册");
         }
     }
 
@@ -321,6 +328,7 @@ public class UserServiceImpl implements UserService {
         vo.setVipLevel(user.getVipLevel());
         vo.setVipExpireTime(user.getVipExpireTime());
         vo.setStatus(user.getStatus());
+        vo.setBanEndTime(user.getBanEndTime());
         vo.setRoles(roles);
         vo.setCreatedAt(user.getCreatedAt());
         return vo;

@@ -37,11 +37,20 @@ public class FollowServlet extends BaseServlet {
 
     private void follows(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         Long userId = AuthUtil.getUserId(req);
-        writeJson(resp, Result.ok(followService.findMyFollows(userId)));
+        int page = parseInt(req.getParameter("page"), 1);
+        int size = parseInt(req.getParameter("size"), 20);
+        writeJson(resp, Result.ok(followService.findMyFollows(userId, page, size)));
     }
 
     private void fans(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         Long userId = AuthUtil.getUserId(req);
-        writeJson(resp, Result.ok(followService.findMyFans(userId)));
+        int page = parseInt(req.getParameter("page"), 1);
+        int size = parseInt(req.getParameter("size"), 20);
+        writeJson(resp, Result.ok(followService.findMyFans(userId, page, size)));
+    }
+
+    private int parseInt(String val, int defaultVal) {
+        if (val == null || val.isEmpty()) return defaultVal;
+        try { return Integer.parseInt(val); } catch (NumberFormatException e) { return defaultVal; }
     }
 }

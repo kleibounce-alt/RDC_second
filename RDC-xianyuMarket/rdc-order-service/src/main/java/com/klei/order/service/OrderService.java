@@ -10,6 +10,10 @@ public interface OrderService {
 
     void cancelOrder(Long buyerId, Long orderId);
 
+    void requestRefund(Long buyerId, Long orderId);
+
+    void handleRefund(Long sellerId, Long orderId, boolean approve);
+
     void completeOrder(Long buyerId, Long orderId);
 
     List<Order> findMyOrders(Long buyerId);

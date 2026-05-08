@@ -1,19 +1,22 @@
 package com.klei.admin.service.impl;
 
 import com.klei.admin.service.AuditService;
+import com.klei.admin.vo.AuditProductVO;
 import com.klei.common.annotation.Autowired;
 import com.klei.common.annotation.Component;
 import com.klei.common.annotation.Transactional;
 import com.klei.common.exception.BusinessException;
 import com.klei.common.mq.MqSender;
-import com.klei.common.utils.RedisUtil;
 import com.klei.admin.entity.AuditLog;
 import com.klei.admin.entity.enums.AuditAction;
 import com.klei.admin.mapper.AuditLogMapper;
 import com.klei.product.entity.Product;
 import com.klei.product.entity.enums.ProductStatus;
 import com.klei.product.mapper.ProductMapper;
+import com.klei.user.entity.User;
+import com.klei.user.mapper.UserMapper;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -23,10 +26,24 @@ public class AuditServiceImpl implements AuditService {
     private AuditLogMapper auditLogMapper;
     @Autowired
     private ProductMapper productMapper;
+    @Autowired
+    private UserMapper userMapper;
 
     @Override
-    public List<Product> findPendingProducts() {
-        return productMapper.findByStatus(ProductStatus.PENDING);
+    public List<AuditProductVO> findPendingProducts() {
+        List<Product> products = productMapper.findByStatus(ProductStatus.PENDING);
+        List<AuditProductVO> result = new ArrayList<>();
+        for (Product p : products) {
+            AuditProductVO vo = new AuditProductVO();
+            vo.setProduct(p);
+            User seller = userMapper.findById(p.getUserId());
+            if (seller != null) {
+                seller.setPassword(null); // 不暴露密码
+            }
+            vo.setSeller(seller);
+            result.add(vo);
+        }
+        return result;
     }
 
     @Override
@@ -47,11 +64,8 @@ public class AuditServiceImpl implements AuditService {
 
         auditLogMapper.insert(productId, adminId, AuditAction.APPROVE, null);
 
-        // 改为 MQ 异步发送
         MqSender.sendMessage(product.getUserId(), "AUDIT_RESULT",
                 "您的商品【" + product.getTitle() + "】已通过审核并发布");
-
-        RedisUtil.del("product:detail:" + productId);
     }
 
     @Override
@@ -75,11 +89,8 @@ public class AuditServiceImpl implements AuditService {
 
         auditLogMapper.insert(productId, adminId, AuditAction.REJECT, reason);
 
-        // 改为 MQ 异步发送
         MqSender.sendMessage(product.getUserId(), "AUDIT_RESULT",
                 "您的商品【" + product.getTitle() + "】审核未通过，原因：" + reason);
-
-        RedisUtil.del("product:detail:" + productId);
     }
 
     @Override

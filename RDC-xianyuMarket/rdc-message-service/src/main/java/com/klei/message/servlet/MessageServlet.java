@@ -2,7 +2,6 @@ package com.klei.message.servlet;
 
 import com.google.gson.reflect.TypeToken;
 import com.klei.common.ioc.IoCContainer;
-import com.klei.common.mapper.MapperProxyFactory;
 import com.klei.common.servlet.BaseServlet;
 import com.klei.common.utils.AuthUtil;
 import com.klei.common.utils.Result;
@@ -28,12 +27,17 @@ public class MessageServlet extends BaseServlet {
     public void init() throws ServletException {
         super.init();
         this.messageService = IoCContainer.getBean(MessageService.class);
-        this.chatRecordMapper = MapperProxyFactory.getMapper(ChatRecordMapper.class);
+        this.chatRecordMapper = IoCContainer.getBean(ChatRecordMapper.class);
+        if (this.chatRecordMapper == null) {
+            this.chatRecordMapper = com.klei.common.mapper.MapperProxyFactory.getMapper(ChatRecordMapper.class);
+        }
     }
 
     private void list(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         Long userId = AuthUtil.getUserId(req);
-        writeJson(resp, Result.ok(messageService.findByUserId(userId)));
+        int page = parseInt(req.getParameter("page"), 1);
+        int size = parseInt(req.getParameter("size"), 20);
+        writeJson(resp, Result.ok(messageService.findByUserId(userId, page, size)));
     }
 
     private void unreadCount(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -59,5 +63,10 @@ public class MessageServlet extends BaseServlet {
         Long userId = AuthUtil.getUserId(req);
         Long otherId = Long.valueOf(req.getParameter("otherId"));
         writeJson(resp, Result.ok(chatRecordMapper.findDialog(userId, otherId, otherId, userId)));
+    }
+
+    private int parseInt(String val, int defaultVal) {
+        if (val == null || val.isEmpty()) return defaultVal;
+        try { return Integer.parseInt(val); } catch (NumberFormatException e) { return defaultVal; }
     }
 }

@@ -7,6 +7,7 @@ import com.klei.admin.service.SensitiveWordService;
 import com.klei.common.annotation.RequireRole;
 import com.klei.common.ioc.IoCContainer;
 import com.klei.common.servlet.BaseServlet;
+import com.klei.common.utils.RedisUtil;
 import com.klei.common.utils.Result;
 
 import javax.servlet.ServletException;
@@ -37,16 +38,23 @@ public class AdminServlet extends BaseServlet {
 
     private void ban(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         Map<String, String> map = gson.fromJson(req.getReader(), mapType);
-        Long userId = Long.valueOf(map.get("userId"));
-        LocalDateTime banEndTime = LocalDateTime.parse(map.get("banEndTime"));
-        adminUserService.banUser(userId, banEndTime);
+        LocalDateTime banEndTime = map.containsKey("banEndTime") && map.get("banEndTime") != null && !map.get("banEndTime").isEmpty()
+                ? LocalDateTime.parse(map.get("banEndTime")) : null;
+        adminUserService.banUserByUsername(map.get("username"), banEndTime);
         writeJson(resp, Result.ok());
     }
 
     private void unban(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         Map<String, String> map = gson.fromJson(req.getReader(), mapType);
-        Long userId = Long.valueOf(map.get("userId"));
-        adminUserService.unbanUser(userId);
+        adminUserService.unbanUserByUsername(map.get("username"));
+        writeJson(resp, Result.ok());
+    }
+
+    private void relist(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Map<String, String> map = gson.fromJson(req.getReader(), mapType);
+        Long productId = Long.valueOf(map.get("productId"));
+        adminUserService.relist(productId);
+        clearProductCache(productId);
         writeJson(resp, Result.ok());
     }
 
@@ -54,6 +62,7 @@ public class AdminServlet extends BaseServlet {
         Map<String, String> map = gson.fromJson(req.getReader(), mapType);
         Long productId = Long.valueOf(map.get("productId"));
         adminUserService.forceOffShelf(productId);
+        clearProductCache(productId);
         writeJson(resp, Result.ok());
     }
 
@@ -64,19 +73,32 @@ public class AdminServlet extends BaseServlet {
         writeJson(resp, Result.ok());
     }
 
-    private void exposure(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        Map<String, String> map = gson.fromJson(req.getReader(), mapType);
-        Long productId = Long.valueOf(map.get("productId"));
-        Integer weight = Integer.valueOf(map.get("weight"));
-        adminProductService.increaseExposure(productId, weight);
-        writeJson(resp, Result.ok());
-    }
-
     private void deleteProduct(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         Map<String, String> map = gson.fromJson(req.getReader(), mapType);
         Long productId = Long.valueOf(map.get("productId"));
         adminProductService.deleteProduct(productId);
+        clearProductCache(productId);
         writeJson(resp, Result.ok());
+    }
+
+    private void setExposure(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        Map<String, String> map = gson.fromJson(req.getReader(), mapType);
+        Long productId = Long.valueOf(map.get("productId"));
+        int level = Integer.parseInt(map.get("level"));
+        adminProductService.setExposure(productId, level);
+        clearProductCache(productId);
+        writeJson(resp, Result.ok());
+    }
+
+    private void clearProductCache(Long productId) {
+        RedisUtil.del("product:detail:" + productId);
+        for (String key : RedisUtil.keys("product:list:*")) {
+            RedisUtil.del(key);
+        }
+    }
+
+    private void listSensitive(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        writeJson(resp, Result.ok(sensitiveWordService.listAll()));
     }
 
     private void addSensitive(HttpServletRequest req, HttpServletResponse resp) throws IOException {
@@ -91,5 +113,9 @@ public class AdminServlet extends BaseServlet {
         Long id = Long.valueOf(map.get("id"));
         sensitiveWordService.deleteWord(id);
         writeJson(resp, Result.ok());
+    }
+
+    private void offShelved(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        writeJson(resp, Result.ok(adminUserService.findOffShelvedProducts()));
     }
 }

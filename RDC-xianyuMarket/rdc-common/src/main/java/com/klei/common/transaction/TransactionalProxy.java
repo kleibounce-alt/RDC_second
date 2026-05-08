@@ -25,7 +25,13 @@ public class TransactionalProxy implements InvocationHandler {
                 || target.getClass().isAnnotationPresent(Transactional.class);
 
         if (!needTx) {
-            return method.invoke(target, args);
+            try {
+                return method.invoke(target, args);
+            } catch (InvocationTargetException e) {
+                Throwable cause = e.getCause();
+                if (cause != null) throw cause;
+                throw e;
+            }
         }
 
         try {
@@ -35,7 +41,9 @@ public class TransactionalProxy implements InvocationHandler {
             return result;
         } catch (InvocationTargetException e) {
             TransactionManager.rollback();
-            throw e.getTargetException();
+            Throwable cause = e.getCause();
+            if (cause != null) throw cause;
+            throw e;
         } catch (Exception e) {
             TransactionManager.rollback();
             throw e;

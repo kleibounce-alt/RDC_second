@@ -6,6 +6,7 @@ import java.util.List;
 
 @Data
 public class ProductPublishDTO {
+    private Long productId;
     private String title;
     private String description;
     private BigDecimal price;

@@ -14,6 +14,9 @@ public interface ProductMapper {
     @Select("SELECT * FROM product WHERE user_id = ? AND is_deleted = 0 ORDER BY created_at DESC")
     List<Product> findByUserId(Long userId);
 
+    @Select("SELECT * FROM product WHERE user_id = ? AND status IN ('PUBLISHED', 'SOLD') AND is_deleted = 0 ORDER BY created_at DESC")
+    List<Product> findPublishedByUserId(Long userId);
+
     @Select("SELECT * FROM product WHERE status = ? AND is_deleted = 0 ORDER BY created_at DESC")
     List<Product> findByStatus(ProductStatus status);
 
@@ -25,6 +28,9 @@ public interface ProductMapper {
 
     @Update("UPDATE product SET status = ?, reject_reason = ?, updated_at = NOW() WHERE id = ? AND is_deleted = 0 AND status = 'PENDING'")
     int updateStatus(ProductStatus status, String rejectReason, Long id);
+
+    @Update("UPDATE product SET status = ?, updated_at = NOW() WHERE id = ? AND is_deleted = 0")
+    int setStatus(ProductStatus status, Long id);
 
     @Update("UPDATE product SET view_count = view_count + 1, updated_at = NOW() WHERE id = ? AND is_deleted = 0")
     int incrementViewCount(Long id);
@@ -57,6 +63,15 @@ public interface ProductMapper {
     @Select("SELECT * FROM product WHERE (title LIKE ? OR description LIKE ?) AND status = 'PUBLISHED' AND is_deleted = 0 ORDER BY created_at DESC")
     List<Product> search(String titlePattern, String descPattern);
 
+    @Select("SELECT * FROM product WHERE (title LIKE ? OR description LIKE ?) AND status = 'PUBLISHED' AND is_deleted = 0 ORDER BY created_at DESC LIMIT ?, ?")
+    List<Product> searchPage(String titlePattern, String descPattern, int offset, int size);
+
+    @Select("SELECT COUNT(*) FROM product WHERE (title LIKE ? OR description LIKE ?) AND status = 'PUBLISHED' AND is_deleted = 0")
+    long countSearch(String titlePattern, String descPattern);
+
     @Update("UPDATE product SET status = 'REJECTED', reject_reason = ?, updated_at = NOW() WHERE id = ? AND is_deleted = 0 AND status = 'PUBLISHED'")
     int forceOffShelf(String reason, Long id);
+
+    @Select("SELECT * FROM product WHERE status = 'REJECTED' AND is_deleted = 0 ORDER BY updated_at DESC")
+    List<Product> findRejected();
 }

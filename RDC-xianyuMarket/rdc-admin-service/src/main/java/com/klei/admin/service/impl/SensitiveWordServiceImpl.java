@@ -8,6 +8,7 @@ import com.klei.common.exception.BusinessException;
 import com.klei.common.utils.RedisUtil;
 import com.klei.message.entity.SensitiveWord;
 import com.klei.message.mapper.SensitiveWordMapper;
+import java.util.List;
 
 @Component
 public class SensitiveWordServiceImpl implements SensitiveWordService {
@@ -32,6 +33,11 @@ public class SensitiveWordServiceImpl implements SensitiveWordService {
             sensitiveWordMapper.insert(w);
         }
         RedisUtil.sadd("sensitive:words", w);
+    }
+
+    @Override
+    public List<SensitiveWord> listAll() {
+        return sensitiveWordMapper.findAll();
     }
 
     @Override

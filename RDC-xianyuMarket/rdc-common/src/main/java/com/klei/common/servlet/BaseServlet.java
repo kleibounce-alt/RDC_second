@@ -5,6 +5,7 @@ import com.klei.common.annotation.RequirePermission;
 import com.klei.common.annotation.RequireRole;
 import com.klei.common.exception.AuthException;
 import com.klei.common.exception.BusinessException;
+import com.klei.common.utils.GsonFactory;
 import com.klei.common.utils.Result;
 
 import javax.servlet.ServletException;
@@ -19,7 +20,7 @@ import java.util.List;
 
 public abstract class BaseServlet extends HttpServlet {
 
-    protected final Gson gson = new Gson();
+    protected final Gson gson = GsonFactory.get();
 
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
@@ -96,8 +97,17 @@ public abstract class BaseServlet extends HttpServlet {
             return action;
         }
 
-        String path = req.getServletPath();
-        action = path.substring(path.lastIndexOf('/') + 1);
+        // 优先从 pathInfo 取（适配 /wallet/* 等通配符映射），否则从 servletPath 取
+        String pathInfo = req.getPathInfo();
+        String path;
+        if (pathInfo != null && !pathInfo.isEmpty()) {
+            // 多级路径转为横杠连接：/audit/pending -> audit-pending -> auditPending
+            path = pathInfo.substring(1).replace('/', '-');
+        } else {
+            path = req.getServletPath();
+            path = path.substring(path.lastIndexOf('/') + 1);
+        }
+        action = path;
         if (action.isEmpty()) {
             action = "index";
         }

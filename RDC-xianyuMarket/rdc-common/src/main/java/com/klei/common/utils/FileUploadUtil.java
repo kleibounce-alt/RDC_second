@@ -13,7 +13,7 @@ import java.util.UUID;
 
 public class FileUploadUtil {
 
-    private static final String UPLOAD_BASE = "upload";
+    private static final String UPLOAD_BASE = System.getProperty("user.home").replace("\\", "/") + "/goodish_uploads";
     private static final long MAX_SIZE = 5 * 1024 * 1024;
     private static final String[] ALLOW_TYPES = {".jpg", ".jpeg", ".png", ".gif", ".webp"};
 
@@ -54,9 +54,9 @@ public class FileUploadUtil {
             }
 
             String newName = UUID.randomUUID().toString().replace("-", "") + ext;
-            String relativePath = UPLOAD_BASE + "/" + subDir + "/" + newName;
+            String relativePath = "static/" + subDir + "/" + newName;
+            String realPath = UPLOAD_BASE + "/" + subDir + "/" + newName;
 
-            String realPath = request.getServletContext().getRealPath("/") + relativePath;
             File dest = new File(realPath);
             if (!dest.getParentFile().exists()) {
                 dest.getParentFile().mkdirs();

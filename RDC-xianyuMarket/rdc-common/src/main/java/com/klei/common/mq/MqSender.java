@@ -1,6 +1,7 @@
 package com.klei.common.mq;
 
 import com.google.gson.Gson;
+import com.klei.common.utils.GsonFactory;
 import com.klei.common.utils.LogUtil;
 import com.rabbitmq.client.Channel;
 
@@ -10,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class MqSender {
-    private static final Gson gson = new Gson();
+    private static final Gson gson = GsonFactory.get();
 
     public static void sendMessage(Long userId, String type, String content) {
         Channel channel = RabbitMQConfig.getChannel();

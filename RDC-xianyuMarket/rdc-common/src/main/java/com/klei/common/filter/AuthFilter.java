@@ -4,6 +4,7 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import com.google.gson.Gson;
 import com.klei.common.exception.AuthException;
 import com.klei.common.pool.ConnectionPool;
+import com.klei.common.utils.GsonFactory;
 import com.klei.common.utils.JwtUtil;
 import com.klei.common.utils.LogUtil;
 import com.klei.common.utils.RedisUtil;
@@ -23,11 +24,14 @@ import java.util.*;
 
 public class AuthFilter implements Filter {
 
-    private final Gson gson = new Gson();
+    private final Gson gson = GsonFactory.get();
     private final Map<String, String> urlPermissionMap = new LinkedHashMap<>();
     private final List<String> whitelist = Arrays.asList(
-            "/login", "/register", "/captcha", "/upload",
-            "/forgot-password", "/reset-password", "/refresh-token"
+            "/login", "/register", "/admin-register", "/captcha", "/upload",
+            "/forgot-password", "/reset-password", "/refresh-token",
+            "/list", "/detail", "/search", "/tag-list",
+            "/comment/list", "/user-info", "/user-products",
+            "/static"
     );
 
     @Override
@@ -71,76 +75,97 @@ public class AuthFilter implements Filter {
         String contextPath = request.getContextPath();
         String path = uri.substring(contextPath.length());
 
-        if (isWhitelisted(path)) {
+        boolean whitelisted = isWhitelisted(path);
+
+        // WebSocket 升级请求放行，端点自行鉴权
+        if ("websocket".equalsIgnoreCase(request.getHeader("Upgrade"))) {
             chain.doFilter(req, resp);
             return;
         }
 
+        // 尝试解析 token，设置用户身份属性（白名单路径不强制要求登录）
         String token = JwtUtil.extractToken(request);
-        if (token == null) {
-            writeJson(response, 401, Result.unauthorized());
-            return;
-        }
+        if (token != null) {
+            try {
+                DecodedJWT jwt = JwtUtil.verify(token);
+                Long userId = jwt.getClaim("userId").asLong();
+                String permsStr = jwt.getClaim("perms").asString();
+                List<String> userPerms = (permsStr == null || permsStr.isEmpty())
+                        ? new ArrayList<>()
+                        : Arrays.asList(permsStr.split(","));
+                String rolesStr = jwt.getClaim("roles").asString();
+                List<String> userRoles = (rolesStr == null || rolesStr.isEmpty())
+                        ? new ArrayList<>()
+                        : Arrays.asList(rolesStr.split(","));
 
-        DecodedJWT jwt;
-        try {
-            jwt = JwtUtil.verify(token);
-        } catch (AuthException e) {
-            writeJson(response, 401, Result.unauthorized());
-            return;
-        }
+                // 封禁检查（白名单路径允许只读浏览，不放行则拦截）
+                if (!whitelisted) {
+                    Date banEndTimeClaim = jwt.getClaim("banEndTime").asDate();
+                    if (banEndTimeClaim != null) {
+                        LocalDateTime banEnd = new java.sql.Timestamp(banEndTimeClaim.getTime()).toLocalDateTime();
+                        if (LocalDateTime.now().isBefore(banEnd)) {
+                            writeJson(response, 403, Result.fail("账号封禁中，解封时间：" + banEnd));
+                            return;
+                        } else {
+                            try (Connection conn = ConnectionPool.getConnection();
+                                 PreparedStatement ps = conn.prepareStatement(
+                                         "UPDATE sys_user SET status = 'NORMAL', ban_end_time = NULL, updated_at = NOW() WHERE id = ?")) {
+                                ps.setLong(1, userId);
+                                ps.executeUpdate();
+                            } catch (SQLException e) {
+                                LogUtil.error("自动解封用户失败 uid=" + userId, e);
+                            }
+                            RedisUtil.del("ban:user:" + userId);
+                        }
+                    }
 
-        Long userId = jwt.getClaim("userId").asLong();
-        String permsStr = jwt.getClaim("perms").asString();
-        List<String> userPerms = (permsStr == null || permsStr.isEmpty())
-                ? new ArrayList<>()
-                : Arrays.asList(permsStr.split(","));
-        String rolesStr = jwt.getClaim("roles").asString();
-        List<String> userRoles = (rolesStr == null || rolesStr.isEmpty())
-                ? new ArrayList<>()
-                : Arrays.asList(rolesStr.split(","));
+                    String blacklistKey = "blacklist:access:" + userId;
+                    if (RedisUtil.exists(blacklistKey)) {
+                        writeJson(response, 401, Result.unauthorized());
+                        return;
+                    }
 
-        // 封禁检查：未到期拦截，已过期自动解封
-        Date banEndTimeClaim = jwt.getClaim("banEndTime").asDate();
-        if (banEndTimeClaim != null) {
-            LocalDateTime banEnd = new java.sql.Timestamp(banEndTimeClaim.getTime()).toLocalDateTime();
-            if (LocalDateTime.now().isBefore(banEnd)) {
-                writeJson(response, 403, Result.fail("账号封禁中，解封时间：" + banEnd));
+                    if (RedisUtil.exists("ban:user:" + userId)) {
+                        writeJson(response, 403, Result.fail("账号已被封禁"));
+                        return;
+                    }
+                }
+
+                // 非白名单路径检查权限
+                if (!whitelisted) {
+                    String requiredPerm = matchPermission(path);
+                    if (requiredPerm != null && !userPerms.contains(requiredPerm)) {
+                        writeJson(response, 403, Result.forbidden());
+                        return;
+                    }
+                }
+
+                request.setAttribute("userId", userId);
+                request.setAttribute("permissions", userPerms);
+                request.setAttribute("roles", userRoles);
+                request.setAttribute("vipLevel", jwt.getClaim("vipLevel").asInt());
+                chain.doFilter(req, resp);
                 return;
-            } else {
-                try (Connection conn = ConnectionPool.getConnection();
-                     PreparedStatement ps = conn.prepareStatement(
-                             "UPDATE sys_user SET status = 'NORMAL', ban_end_time = NULL, updated_at = NOW() WHERE id = ?")) {
-                    ps.setLong(1, userId);
-                    ps.executeUpdate();
-                } catch (SQLException e) {
-                    LogUtil.error("自动解封用户失败 uid=" + userId, e);
+            } catch (AuthException e) {
+                if (!whitelisted) {
+                    writeJson(response, 401, Result.unauthorized());
+                    return;
                 }
             }
         }
 
-        String blacklistKey = "blacklist:access:" + userId;
-        if (RedisUtil.exists(blacklistKey)) {
+        if (!whitelisted) {
             writeJson(response, 401, Result.unauthorized());
             return;
         }
 
-        String requiredPerm = matchPermission(path);
-        if (requiredPerm != null && !userPerms.contains(requiredPerm)) {
-            writeJson(response, 403, Result.forbidden());
-            return;
-        }
-
-        request.setAttribute("userId", userId);
-        request.setAttribute("permissions", userPerms);
-        request.setAttribute("roles", userRoles);
-        request.setAttribute("vipLevel", jwt.getClaim("vipLevel").asInt());
+        // 白名单路径且无有效 token，直接放行
         chain.doFilter(req, resp);
     }
 
     private boolean isWhitelisted(String path) {
         for (String w : whitelist) {
-            if (path.startsWith(w)) {
+            if (path.equals(w) || path.startsWith(w + "/")) {
                 return true;
             }
         }

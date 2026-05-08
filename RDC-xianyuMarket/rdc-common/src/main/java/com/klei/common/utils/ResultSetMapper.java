@@ -93,6 +93,11 @@ public class ResultSetMapper {
             return value.toString();
         }
 
+        // MySQL TINYINT(1) 被 JDBC 当成 Boolean，Java 侧是 Integer
+        if (value instanceof Boolean && (targetType == Integer.class || targetType == int.class)) {
+            return ((Boolean) value) ? 1 : 0;
+        }
+
         if (targetType == LocalDateTime.class) {
             if (value instanceof Timestamp) {
                 return ((Timestamp) value).toLocalDateTime();
@@ -102,17 +107,21 @@ public class ResultSetMapper {
             }
         }
 
-        // 枚举类型映射（数据库 ENUM/字符串 -> Java Enum）
+        // 枚举类型映射（数据库 ENUM/数字/字符串 -> Java Enum）
         if (targetType.isEnum()) {
-            if (value instanceof String) {
-                String enumStr = ((String) value).trim();
-                try {
-                    @SuppressWarnings({"unchecked", "rawtypes"})
-                    Object enumValue = Enum.valueOf((Class<Enum>) targetType, enumStr);
-                    return enumValue;
-                } catch (IllegalArgumentException e) {
-                    throw new RuntimeException("枚举映射失败: " + targetType.getSimpleName() + " 不存在值'" + enumStr + "'", e);
+            @SuppressWarnings({"unchecked", "rawtypes"})
+            Object[] enumConstants = targetType.getEnumConstants();
+            if (value instanceof Number) {
+                int ordinal = ((Number) value).intValue();
+                if (ordinal >= 0 && ordinal < enumConstants.length) {
+                    return enumConstants[ordinal];
                 }
+            }
+            String enumStr = value.toString().trim();
+            try {
+                return Enum.valueOf((Class<Enum>) targetType, enumStr);
+            } catch (IllegalArgumentException e) {
+                throw new RuntimeException("枚举映射失败: " + targetType.getSimpleName() + " 不存在值'" + enumStr + "'", e);
             }
         }
 

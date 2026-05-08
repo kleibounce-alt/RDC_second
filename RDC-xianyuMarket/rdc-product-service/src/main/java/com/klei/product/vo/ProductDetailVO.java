@@ -11,4 +11,6 @@ public class ProductDetailVO {
     private Product product;
     private List<ProductImage> images;
     private List<Tag> tags;
+    private SellerVO seller;
+    private Boolean isFavorited;
 }
